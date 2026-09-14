@@ -8,111 +8,225 @@
 
 The product is a voice-first operating assistant for microbusinesses. It turns spoken business activity into structured records, maintains a live view of business state, and helps owners understand and act on their own business data.
 
-The interface should feel like a real, focused SaaS product — not a hackathon prototype.
+The interface should feel like a **real, credible business product**, not a hackathon project, AI experiment, or developer tool.
 
 ---
 
-## Design Direction
+# 1. Design Direction
 
-### Overall feeling
+## Overall feeling
 
-* Calm
-* Modern
-* Trustworthy
+The interface should feel:
+
 * Practical
-* Lightweight
-* Data-aware
+* Trustworthy
+* Warm
+* Grounded
+* Modern
 * Human
+* Capable
+* Calm
 
-The product should feel appropriate for a real business owner who needs clarity and speed.
+The product is designed for people running real businesses.
 
-Avoid making it look like an AI experiment, developer tool, or hackathon landing page.
+The visual design should communicate **clarity and usefulness before technology**.
 
-### Visual references
-
-Take inspiration from:
-
-* Linear — restraint, typography, spacing, subtle motion, product polish
-* Square — business dashboards, useful information hierarchy, operational clarity
-* Modern SaaS products — strong hero typography and polished product previews
-
-Do not copy any existing product's branding or layout.
+AI is a capability inside the product. It should not become the visual identity of the product.
 
 ---
 
-## Color System
+# 2. Anti-Generic-AI Rule
 
-Use a dark graphite foundation.
+The product must deliberately avoid the common contemporary "AI SaaS" aesthetic.
+
+Do NOT use:
+
+* Cyan-on-black as the primary visual identity
+* Electric blue accents
+* Purple/pink AI gradients
+* Neon glows
+* Excessive gradient backgrounds
+* Glassmorphism
+* Floating translucent cards
+* Glowing AI orbs
+* Sparkles/stars
+* Futuristic sci-fi imagery
+* Excessive pill-shaped UI
+* "AI-powered" visual clichés
+* Decorative AI imagery
+
+The product should **not look like a generic AI agent landing page**.
+
+Avoid visual decisions that would make the interface look interchangeable with hundreds of AI startups.
+
+The design should have a clear human point of view.
+
+---
+
+# 3. Color System
+
+Use a **warm earthy palette** rather than the typical cold blue/cyan AI palette.
+
+## Core colors
 
 ### Background
 
-* Main background: near-black graphite
-* Secondary surfaces: slightly lighter graphite
-* Cards: subtle elevation from the background
+Warm ink / charcoal:
 
-### Accent
+`#171614`
 
-Use cyan/teal as the primary product accent.
+Use this as the primary page background.
 
-Accent should communicate:
+### Primary surface
 
-* voice
-* activity
-* live state
-* important actions
+Warm dark gray:
 
-Do not flood the interface with accent color.
+`#211F1B`
 
-### Text
+Use for major cards, navigation surfaces, and product-preview containers.
 
-* Primary: near-white
-* Secondary: muted gray
-* Tertiary: darker muted gray
+### Secondary surface
 
-### Semantic colors
+Warm graphite:
 
-Use restrained green/red/amber only where they communicate business state:
+`#292722`
 
-* Green → positive / healthy / received
-* Amber → attention / low stock / pending
-* Red → negative / overdue / risk
+Use for nested cards, secondary panels, and subtle elevation.
+
+### Primary text
+
+Warm off-white:
+
+`#F4F0E8`
+
+Use for headlines and important information.
+
+### Secondary text
+
+Warm gray:
+
+`#AAA49A`
+
+Use for descriptions, labels, metadata, and supporting information.
+
+### Primary accent
+
+Terracotta / burnt orange:
+
+`#D97745`
+
+This is the primary product accent.
+
+Use it intentionally for:
+
+* Primary CTA buttons
+* Active states
+* Voice activity
+* Selected elements
+* Important highlights
+* Small visual indicators
+* Interactive emphasis
+
+Do NOT use terracotta on every element.
+
+The accent should feel valuable because it is used selectively.
 
 ---
 
-## Typography
+# 4. Semantic Colors
 
-Use a modern sans-serif.
+Use subdued semantic colors.
+
+### Positive
+
+Muted green:
+
+`#6F9B72`
+
+Use for:
+
+* positive business states
+* received payments
+* healthy indicators
+* positive changes
+
+### Attention
+
+Muted amber:
+
+`#C89B52`
+
+Use for:
+
+* low inventory
+* pending items
+* attention states
+
+### Negative
+
+Muted red:
+
+`#C86B63`
+
+Use for:
+
+* overdue balances
+* negative changes
+* important warnings
+
+Semantic colors should remain restrained and should not overpower the terracotta product accent.
+
+---
+
+# 5. Typography
+
+Use a modern, highly readable sans-serif.
 
 Prioritize:
 
-1. Clear hierarchy
-2. Large confident headlines
-3. Comfortable reading width
-4. Compact but readable dashboard text
+1. Strong hierarchy
+2. Excellent readability
+3. Confident headlines
+4. Comfortable line height
+5. Clear dashboard labels
+6. Good information density
+
+The typography should feel polished and contemporary without being futuristic.
 
 Avoid:
 
-* oversized marketing copy everywhere
-* excessive uppercase text
-* decorative fonts
-* overly tight line heights
+* Decorative fonts
+* Excessive uppercase text
+* Extremely thin text
+* Overly compressed typography
+* Huge marketing headlines that dominate the entire page
+
+The typography should support the product rather than become decoration.
 
 ---
 
-## Navigation
+# 6. Navigation
 
 The navigation should be minimal.
 
-Left:
-**Voice-First Business Assistant** or a compact product mark.
+## Left
 
-Right:
+Display the product name:
+
+**Voice-First Business Assistant**
+
+A small simple product mark may accompany it if one already exists.
+
+## Right
+
+Use only useful product navigation such as:
 
 * Product
 * How it works
 * Demo
 
 Primary CTA:
+
 **Try the assistant**
 
 Do NOT display:
@@ -120,63 +234,94 @@ Do NOT display:
 * STARK
 * STARK 2026
 * Hackathon
+* Hackathon project
 * Early-stage project
 * Development status
+* Competition branding
 
 The product interface should stand independently from the hackathon.
 
 ---
 
-## Hero
+# 7. Hero
 
-The hero should immediately communicate the product.
+The hero should communicate the product immediately.
 
-### Eyebrow
+## Eyebrow
 
 **Your business, in your voice.**
 
-### Main headline
+Keep this subtle.
+
+## Main headline
 
 **Run your business by voice.**
 
-### Supporting copy
+This should be the strongest text on the page.
+
+## Supporting copy
 
 Speak naturally about sales, expenses, inventory, and customer debts. The assistant turns what you say into structured business records and helps you understand what is happening in your business.
 
-### Primary CTA
+Keep the copy concise.
+
+## Primary CTA
 
 **Try the assistant**
 
-### Secondary CTA
+## Secondary CTA
 
 **See how it works**
 
-Keep the hero concise.
+The hero should feel confident and product-focused rather than like a generic startup pitch.
 
 ---
 
-## Hero Product Preview
+# 8. Hero Product Preview
 
-The most important visual element of the landing page should be a realistic product preview.
+The most important visual element of the landing page should be a polished preview of the future product.
 
-Show a dashboard-like business snapshot inside a polished product frame.
+Create a realistic static business dashboard/product interface.
 
-Example information:
+It should look like something a real business owner could use.
 
-**Today**
+Do not make it look like a decorative AI mockup.
 
-* Sales: ETB 8,450
-* Expenses: ETB 2,180
-* Cash position: ETB 6,270
-* Outstanding: ETB 3,400
+## Demo business
 
-Include a small activity stream:
+Clearly label the information as:
+
+**Demo business**
+
+Use realistic demo data.
+
+Example:
+
+### Today
+
+**Sales**
+ETB 8,450
+
+**Expenses**
+ETB 2,180
+
+**Cash position**
+ETB 6,270
+
+**Outstanding**
+ETB 3,400
+
+## Recent activity
 
 * Sale recorded — 12 shirts — ETB 4,800
 * Inventory added — 20 shirts
 * Customer balance updated — Abebe — ETB 1,200
 
-Include a visible voice interaction element:
+## Voice interaction
+
+Show a simple voice interaction component.
+
+Example:
 
 **"What did I sell today?"**
 
@@ -184,150 +329,193 @@ Then show:
 
 **You sold ETB 8,450 today across 17 transactions.**
 
-This is a visual preview only at this stage. Do not pretend these are real user records.
+This is a visual product preview only.
 
-Label demo data subtly as:
-**Demo business**
+Do not imply that these records are connected to a real backend yet.
 
 ---
 
-## Product Story
+# 9. Voice Visual Language
 
-After the hero, communicate the core loop:
+Voice is central to the product, but it should not be represented using generic AI imagery.
 
-### Speak
+Do NOT use:
+
+* AI orb
+* glowing sphere
+* sci-fi assistant
+* giant animated brain
+* sparkles
+* futuristic hologram
+
+Instead use:
+
+* microphone controls
+* simple waveform
+* subtle voice pulses
+* small terracotta activity indicators
+* clear listening state
+* clear processing state
+
+The voice UI should feel like a practical tool.
+
+When active, the terracotta accent can subtly animate through the waveform or microphone indicator.
+
+---
+
+# 10. Product Story
+
+After the hero, communicate the core product loop.
+
+## Speak
 
 Tell the assistant what happened.
 
-### Record
+## Record
 
 Your words become structured business activity.
 
-### Understand
+## Understand
 
 See sales, expenses, inventory, and outstanding payments in one place.
 
-### Decide
+## Decide
 
 Ask questions about your business and get answers based on your recorded data.
 
-Use simple icons and restrained animation.
+Use simple visual elements and restrained motion.
+
+Do not over-design this section.
 
 ---
 
-## Feature Section
+# 11. Core Capabilities
 
-Keep this short.
+Keep the feature section concise.
 
-### Capture business activity
+## Capture business activity
 
 Record sales, expenses, purchases, inventory changes, and customer debts by voice.
 
-### See what is happening
+## See what is happening
 
-Get a simple view of your business activity and performance.
+Get a simple view of business activity and performance.
 
-### Ask your business
+## Ask your business
 
 Ask questions about sales, inventory, expenses, and money owed.
 
-### Make better decisions
+## Make better decisions
 
 Use your own business data to answer practical operational questions.
 
-Do not add pricing, testimonials, fake customer logos, fake statistics, or unsupported claims.
+Do not add unsupported product claims.
 
 ---
 
-## Motion
+# 12. Cards
 
-Motion should make the product feel alive without becoming distracting.
+Cards should feel like solid parts of a real application.
 
 Use:
 
-* subtle fade/slide entrance
-* gentle card movement
-* small hover states
-* animated voice waveform
-* subtle number transitions
-* soft accent glow around active voice elements
+* Subtle borders
+* Warm dark surfaces
+* Moderate corner radius
+* Clear internal spacing
+* Strong hierarchy
+* Minimal shadows
 
 Avoid:
 
-* constant floating animations
-* excessive parallax
-* large spinning objects
-* flashy gradients
-* excessive glassmorphism
-* animation on every element
+* Huge rounded cards
+* Excessive glass effects
+* Floating translucent panels
+* Excessive shadows
+* Decorative gradients
 
-The interface should feel responsive, not animated for its own sake.
-
----
-
-## Cards
-
-Cards should have:
-
-* subtle borders
-* restrained corner radius
-* very small elevation difference
-* generous internal spacing
-
-Avoid extremely rounded "AI SaaS" cards.
-
-The visual hierarchy should come primarily from typography, spacing, and contrast.
+Information hierarchy should come from **spacing, typography, contrast, and structure**.
 
 ---
 
-## Buttons
+# 13. Buttons
 
-Primary:
+## Primary buttons
 
-* solid accent
-* strong contrast
-* compact
-* confident
+Use the terracotta accent:
 
-Secondary:
+`#D97745`
 
-* transparent or low-contrast surface
-* subtle border
+Buttons should be:
 
-Button text should be action-oriented:
+* Clear
+* Compact
+* Confident
+* Easy to identify
 
-Good:
+Examples:
 
 * Try the assistant
-* See the demo
 * Ask a question
 * Record activity
+* See the demo
 
-Avoid:
+## Secondary buttons
 
-* Learn more
-* Discover
-* Explore the future
+Use dark surfaces and subtle borders.
+
+Avoid making every button brightly colored.
 
 ---
 
-## Landing Page Structure
+# 14. Motion
+
+The interface should feel alive, but motion must remain restrained.
+
+Good motion:
+
+* Subtle hero entrance
+* Gentle card transitions
+* Small hover states
+* Subtle waveform animation
+* Small voice activity pulse
+* Light number transitions
+* Gentle CTA interaction
+
+Avoid:
+
+* Constant floating animations
+* Excessive parallax
+* Large spinning objects
+* Animating every element
+* Aggressive scale effects
+* Distracting background animations
+
+Motion should communicate **responsiveness and life**, not spectacle.
+
+---
+
+# 15. Landing Page Structure
+
+The landing page should follow this general structure:
 
 1. Minimal navigation
 2. Hero
 3. Product/dashboard preview
 4. How it works
 5. Core capabilities
-6. Short closing CTA
+6. Closing CTA
 7. Minimal product footer
 
-The page should be visually impressive without becoming long.
+Keep the page focused.
+
+Do not add unnecessary sections.
 
 ---
 
-## Footer
+# 16. Footer
 
-Keep the footer product-focused.
+The footer should remain product-focused.
 
 Example:
 
@@ -335,65 +523,147 @@ Example:
 
 Run your business by voice.
 
-Links:
+Useful links:
 
 * Product
 * How it works
 * GitHub
 
-Do not mention STARK in the product footer.
+Do NOT mention:
+
+* STARK
+* STARK 2026
+* Hackathon
+* Competition
+* Early-stage project
+
+Hackathon information belongs in the repository, changelog, and submission—not inside the product experience.
 
 ---
 
-## Responsive Design
+# 17. Responsive Design
 
-Desktop:
+## Desktop
 
-* Strong two-column hero
-* Large product preview
+Use:
+
+* Strong hero composition
+* Clear product preview
 * Comfortable whitespace
+* Good visual balance between text and product UI
 
-Mobile:
+## Mobile
+
+Use:
 
 * Single-column layout
-* Hero remains concise
-* Product preview remains readable
-* Navigation collapses cleanly
+* Concise hero
+* Readable product preview
+* Collapsed navigation if necessary
+* Comfortable spacing
 
-The mobile experience should not feel like an afterthought.
-
----
-
-## Important Constraints
-
-This iteration is a **visual foundation**, not a feature-building milestone.
-
-Do not:
-
-* add authentication
-* add a database
-* add Voxide
-* add an AI API
-* add real voice processing
-* add complex charts
-* add a design library
-* add unnecessary dependencies
-* create a full dashboard application
-
-Use the existing Next.js/Tailwind setup.
-
-Prefer existing components and CSS over adding dependencies.
-
-The static preview may use realistic demo data, but it must be clearly presented as demo data.
-
-The design should be easy to extend later into the real application.
+Mobile should feel intentionally designed rather than simply being a compressed desktop page.
 
 ---
 
-## Product Principle
+# 18. Implementation Constraints
 
-The interface should always communicate this idea:
+This design pass is a **visual foundation only**.
 
-**Speak naturally → your business state updates → you understand what is happening → you make a better decision.**
+Do NOT implement:
 
-Everything added to the product should reinforce this loop.
+* Authentication
+* Database
+* Voxide
+* AI APIs
+* Real voice processing
+* Real dashboard functionality
+* Complex charts
+* Payment systems
+* Full accounting
+* Inventory backend
+* New business logic
+* New product features
+
+Do not add unnecessary dependencies.
+
+Use the existing:
+
+* Next.js
+* React
+* TypeScript
+* Tailwind CSS
+* Existing project structure
+
+Prefer existing components and CSS/Tailwind.
+
+Keep the implementation simple and maintainable.
+
+---
+
+# 19. Demo Data Rules
+
+The landing page may contain realistic demo information so the product preview looks alive.
+
+However:
+
+* Clearly label it as demo data
+* Do not claim real users
+* Do not claim real businesses
+* Do not invent testimonials
+* Do not invent partnerships
+* Do not invent revenue
+* Do not invent adoption numbers
+* Do not imply that unfinished functionality already exists
+
+The visual preview should communicate the product direction without making false claims.
+
+---
+
+# 20. Product Principle
+
+Everything in the interface should reinforce the central product loop:
+
+**Speak naturally → business activity is recorded → business state becomes clearer → owner makes a better decision.**
+
+The interface should make this idea understandable within seconds.
+
+---
+
+# 21. Design Quality Test
+
+Before considering the visual design complete, ask:
+
+> Could this be mistaken for another generic AI SaaS landing page?
+
+If the answer is yes:
+
+* Remove unnecessary AI visual clichés.
+* Reduce decorative effects.
+* Strengthen the business-tool identity.
+* Improve typography and information hierarchy.
+* Use the warm earthy palette consistently.
+
+The final product should feel distinctive without being complicated.
+
+---
+
+# 22. Scope Rule
+
+This document defines the **visual foundation for the current milestone**.
+
+Do not expand the scope.
+
+The goal is not to create the final product in this pass.
+
+The goal is to make the existing landing page look polished enough that a judge immediately understands:
+
+**What is this?**
+
+**Who is it for?**
+
+**Why is voice important?**
+
+**What will the product eventually do?**
+
+And to make the product feel credible enough that the judge wants to see the next iteration.
