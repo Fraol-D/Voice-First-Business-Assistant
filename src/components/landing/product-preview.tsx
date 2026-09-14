@@ -67,13 +67,13 @@ export function ProductPreview() {
               </svg>
             </span>
             <div
-              className="flex h-7 items-end gap-[3px]"
+              className="flex h-7 items-end gap-0.75"
               aria-hidden="true"
             >
               {waveDelays.map((delay, index) => (
                 <span
                   key={index}
-                  className="wave-bar w-[3px] rounded-full bg-accent"
+                  className="wave-bar w-0.75 rounded-full bg-accent"
                   style={{
                     height: `${10 + (index % 4) * 4}px`,
                     animationDelay: `${delay}s`,
@@ -85,7 +85,7 @@ export function ProductPreview() {
               “What did I sell today?”
             </p>
           </div>
-          <p className="mt-3 text-sm leading-6 text-muted break-words">
+          <p className="mt-3 text-sm leading-6 text-muted wrap-break-word">
             <span className="text-accent">Assistant</span>
             {" — You sold ETB 8,450 today across 17 transactions."}
           </p>
