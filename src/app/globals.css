@@ -1,17 +1,18 @@
 @import "tailwindcss";
 
 :root {
-  --background: #0a0c10;
-  --surface: #12151b;
-  --surface-2: #181c24;
-  --foreground: #f4f6f8;
-  --muted: #9aa3ad;
-  --faint: #6b7380;
-  --line: rgba(244, 246, 248, 0.08);
-  --accent: #3ddec8;
-  --accent-dim: rgba(61, 222, 200, 0.12);
-  --positive: #3dd68c;
-  --attention: #e0b15c;
+  --background: #171614;
+  --surface: #211f1b;
+  --surface-2: #292722;
+  --foreground: #f4f0e8;
+  --muted: #aaa49a;
+  --faint: #7f796f;
+  --line: rgba(244, 240, 232, 0.1);
+  --accent: #d97745;
+  --accent-dim: rgba(217, 119, 69, 0.12);
+  --positive: #6f9b72;
+  --attention: #c89b52;
+  --negative: #c86b63;
 }
 
 @theme inline {
@@ -26,6 +27,7 @@
   --color-accent-dim: var(--accent-dim);
   --color-positive: var(--positive);
   --color-attention: var(--attention);
+  --color-negative: var(--negative);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
@@ -75,13 +77,13 @@ summary::-webkit-details-marker {
   }
 }
 
-@keyframes pulse-glow {
+@keyframes pulse-voice {
   0%,
   100% {
-    box-shadow: 0 0 0 0 rgba(61, 222, 200, 0.18);
+    box-shadow: 0 0 0 0 rgba(217, 119, 69, 0.18);
   }
   50% {
-    box-shadow: 0 0 0 6px rgba(61, 222, 200, 0);
+    box-shadow: 0 0 0 5px rgba(217, 119, 69, 0);
   }
 }
 
@@ -94,8 +96,8 @@ summary::-webkit-details-marker {
   animation: wave 1.15s ease-in-out infinite;
 }
 
-.voice-glow {
-  animation: pulse-glow 2.4s ease-in-out infinite;
+.voice-pulse {
+  animation: pulse-voice 2.4s ease-in-out infinite;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -105,7 +107,7 @@ summary::-webkit-details-marker {
 
   .enter-up,
   .wave-bar,
-  .voice-glow {
+  .voice-pulse {
     animation: none;
   }
 }

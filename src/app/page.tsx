@@ -62,7 +62,7 @@ function Mark() {
 export default function Home() {
   return (
     <div className="flex min-h-full flex-1 flex-col">
-      <header className="sticky top-0 z-20 border-b border-line bg-background/80 backdrop-blur-md">
+      <header className="sticky top-0 z-20 border-b border-line bg-background">
         <div className="mx-auto flex h-14 w-full max-w-6xl items-center gap-3 px-5 sm:px-8">
           <a
             href="#product"
@@ -105,7 +105,7 @@ export default function Home() {
             </details>
             <a
               href="#demo"
-              className="shrink-0 rounded-md bg-accent px-3 py-1.5 text-sm font-medium text-[#07201c] transition-opacity hover:opacity-90"
+              className="shrink-0 rounded-md bg-accent px-3 py-1.5 text-sm font-medium text-background transition-opacity hover:opacity-90"
             >
               <span className="sm:hidden">Try</span>
               <span className="hidden sm:inline">Try the assistant</span>
@@ -119,10 +119,6 @@ export default function Home() {
           id="product"
           className="relative overflow-hidden scroll-mt-16"
         >
-          <div
-            aria-hidden="true"
-            className="pointer-events-none absolute inset-x-0 top-0 h-[520px] bg-[radial-gradient(ellipse_at_top,_rgba(61,222,200,0.08),_transparent_58%)]"
-          />
           <div className="relative mx-auto grid w-full max-w-6xl items-center gap-12 px-5 py-16 sm:px-8 lg:grid-cols-[minmax(0,0.92fr)_minmax(0,1.08fr)] lg:gap-14 lg:py-20">
             <div className="min-w-0">
               <p
@@ -152,13 +148,13 @@ export default function Home() {
               >
                 <a
                   href="#demo"
-                  className="rounded-md bg-accent px-4 py-2.5 text-sm font-medium text-[#07201c] transition-opacity hover:opacity-90"
+                    className="rounded-md bg-accent px-4 py-2.5 text-sm font-medium text-background transition-opacity hover:opacity-90"
                 >
                   Try the assistant
                 </a>
                 <a
                   href="#how-it-works"
-                  className="rounded-md border border-line px-4 py-2.5 text-sm text-foreground transition-colors hover:bg-white/[0.03]"
+                    className="rounded-md border border-line px-4 py-2.5 text-sm text-foreground transition-colors hover:bg-surface-2"
                 >
                   See how it works
                 </a>
@@ -181,7 +177,7 @@ export default function Home() {
               {steps.map((step, index) => (
                 <article
                   key={step.title}
-                  className="rounded-xl border border-line bg-surface p-5 transition-transform duration-200 hover:-translate-y-0.5"
+                  className="rounded-lg border border-line bg-surface p-5 transition-colors duration-200 hover:border-accent/35"
                 >
                   <p className="font-mono text-xs text-faint">
                     0{index + 1}
@@ -206,7 +202,7 @@ export default function Home() {
               {capabilities.map((item) => (
                 <article
                   key={item.title}
-                  className="rounded-xl border border-line bg-surface p-6 transition-colors hover:border-white/12"
+                  className="rounded-lg border border-line bg-surface p-6 transition-colors hover:border-accent/35"
                 >
                   <h3 className="text-base font-medium">{item.title}</h3>
                   <p className="mt-2 text-sm leading-6 text-muted">
@@ -230,13 +226,13 @@ export default function Home() {
             <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
               <a
                 href="#demo"
-                className="rounded-md bg-accent px-4 py-2.5 text-sm font-medium text-[#07201c] transition-opacity hover:opacity-90"
+                className="rounded-md bg-accent px-4 py-2.5 text-sm font-medium text-background transition-opacity hover:opacity-90"
               >
                 Try the assistant
               </a>
               <a
                 href="#how-it-works"
-                className="rounded-md border border-line px-4 py-2.5 text-sm text-foreground transition-colors hover:bg-white/[0.03]"
+                className="rounded-md border border-line px-4 py-2.5 text-sm text-foreground transition-colors hover:bg-surface-2"
               >
                 See how it works
               </a>

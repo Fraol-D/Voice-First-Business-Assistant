@@ -29,15 +29,15 @@ export function ProductPreview() {
   return (
     <div
       id="demo"
-      className="enter-up w-full min-w-0 scroll-mt-24 rounded-xl border border-line bg-surface shadow-[0_24px_80px_rgba(0,0,0,0.35)]"
+      className="enter-up w-full min-w-0 scroll-mt-24 rounded-lg border border-line bg-surface shadow-[0_16px_40px_rgba(0,0,0,0.24)]"
       style={{ animationDelay: "160ms" }}
     >
       <div className="flex items-center justify-between border-b border-line px-4 py-3 sm:px-5">
         <div className="flex items-center gap-3">
           <div className="flex gap-1.5" aria-hidden="true">
-            <span className="size-2 rounded-full bg-white/15" />
-            <span className="size-2 rounded-full bg-white/15" />
-            <span className="size-2 rounded-full bg-white/15" />
+            <span className="size-2 rounded-full bg-foreground/15" />
+            <span className="size-2 rounded-full bg-foreground/15" />
+            <span className="size-2 rounded-full bg-foreground/15" />
           </div>
           <p className="text-sm text-muted">Assistant</p>
         </div>
@@ -47,8 +47,25 @@ export function ProductPreview() {
       </div>
 
       <div className="space-y-5 p-4 sm:p-5">
-        <div className="voice-glow rounded-lg border border-accent/25 bg-accent-dim p-3.5 sm:p-4">
+        <div className="voice-pulse rounded-lg border border-accent/25 bg-accent-dim p-3.5 sm:p-4">
           <div className="flex min-w-0 items-start gap-3 sm:items-center">
+            <span
+              className="flex size-8 shrink-0 items-center justify-center rounded-md bg-accent text-background"
+              aria-label="Voice activity"
+            >
+              <svg
+                aria-hidden="true"
+                viewBox="0 0 16 16"
+                className="size-4"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.6"
+                strokeLinecap="round"
+              >
+                <rect x="5.5" y="2" width="5" height="8" rx="2.5" />
+                <path d="M3.5 8.5a4.5 4.5 0 0 0 9 0M8 13v2M5.5 15h5" />
+              </svg>
+            </span>
             <div
               className="flex h-7 items-end gap-[3px]"
               aria-hidden="true"
@@ -83,7 +100,7 @@ export function ProductPreview() {
             {metrics.map((metric) => (
               <div
                 key={metric.label}
-                className="rounded-lg border border-line bg-surface-2 px-3 py-3 transition-colors hover:border-white/12"
+                className="rounded-lg border border-line bg-surface-2 px-3 py-3 transition-colors hover:border-accent/35"
               >
                 <p className="text-[11px] text-faint">{metric.label}</p>
                 <p
