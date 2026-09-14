@@ -1,36 +1,57 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Voice-First Business Assistant
+
+> Run your business by voice.
+
+A voice-first operating assistant for microbusinesses.
+
+The system is intended to help business owners capture everyday business activity such as sales, expenses, purchases, inventory changes, and customer debts through natural voice interaction.
+
+It converts spoken activity into structured business events, maintains a live view of business state, provides visual business insights, and helps owners make operational decisions using their own data.
+
+This repository is at an early stage. The application currently hosts a project landing page. Voice capture, business-state persistence, dashboards, and decision support are planned and not yet implemented.
+
+## Core Flow
+
+Voice → Validated Business Event → Business State → Analysis → Decision
+
+## Planned Capabilities
+
+- Voice-based business activity capture
+- Sales and expense tracking
+- Inventory tracking
+- Customer receivables
+- Business dashboard
+- Business visualizations
+- Voice-based business queries
+- Operational decision support
+
+## Planned Architecture Principle
+
+AI should interpret natural-language input and explain results, but the underlying structured business state and deterministic calculations should remain the source of truth for business numbers.
+
+## Documentation
+
+- [Problem exploration](docs/ideation/01-problem-exploration.md)
+- [Research findings](docs/ideation/02-research-findings.md)
+- [Existing approaches](docs/ideation/03-existing-approaches.md)
+- [Solution hypothesis](docs/ideation/04-solution-hypothesis.md)
+- [Product definition](docs/ideation/05-product-definition.md)
+- [Architecture](docs/architecture/architecture.md)
 
 ## Getting Started
 
-First, run the development server:
-
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000) to view the landing page.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+npm run build
+npm run lint
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Status
 
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Built during the STARK Official Hackathon 2026.
