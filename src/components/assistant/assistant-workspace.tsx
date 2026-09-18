@@ -29,6 +29,10 @@ function parseNumber(value: string): number | null {
   return Number.isFinite(parsed) ? parsed : Number.NaN;
 }
 
+function validationIssue(message: string): ResponseState {
+  return { kind: "issue", tone: "error", message };
+}
+
 function issueFromFailure(failure: ApiFailure): ResponseState {
   return {
     kind: "issue",
@@ -129,52 +133,122 @@ export function AssistantWorkspace() {
       return;
     }
 
-    const data: Record<string, string | number | null> = {
-      date: fields.date || todayIsoDate(),
-      currency: fields.currency.trim() || "ETB",
-    };
-
     const quantity = parseNumber(fields.quantity);
     const amount = parseNumber(fields.amount);
     if (Number.isNaN(quantity) || Number.isNaN(amount)) {
-      setResponse({
-        kind: "issue",
-        tone: "error",
-        message: "Quantity and amount must be valid numbers when provided.",
-      });
+      setResponse(validationIssue("Enter valid numbers for quantity and amount."));
       return;
     }
 
-    if (eventType === "sale") {
-      data.item = fields.item.trim() || null;
-      if (quantity !== null) data.quantity = quantity;
-      if (amount !== null) data.amount = amount;
-      data.customer = fields.customer.trim() || null;
+    const item = fields.item.trim();
+    const customer = fields.customer.trim();
+    const description = fields.description.trim();
+    const reason = fields.reason.trim();
+    const currency = fields.currency.trim();
+
+    if (!fields.date) {
+      setResponse(validationIssue("Choose a date for this event."));
+      return;
+    }
+
+    if (eventType === "sale" || eventType === "purchase") {
+      if (!item) {
+        setResponse(validationIssue("Enter the item name."));
+        return;
+      }
+      if (quantity === null || quantity <= 0) {
+        setResponse(validationIssue("Quantity must be greater than zero."));
+        return;
+      }
+      if (amount === null || amount <= 0) {
+        setResponse(validationIssue("Amount must be greater than zero."));
+        return;
+      }
+      if (!currency) {
+        setResponse(validationIssue("Choose a currency."));
+        return;
+      }
     }
 
     if (eventType === "expense") {
-      data.description = fields.description.trim() || null;
+      if (!description) {
+        setResponse(validationIssue("Enter a description for the expense."));
+        return;
+      }
+      if (amount === null || amount <= 0) {
+        setResponse(validationIssue("Amount must be greater than zero."));
+        return;
+      }
+      if (!currency) {
+        setResponse(validationIssue("Choose a currency."));
+        return;
+      }
+    }
+
+    if (eventType === "inventory_adjustment") {
+      if (!item) {
+        setResponse(validationIssue("Enter the item name."));
+        return;
+      }
+      if (quantity === null || quantity === 0) {
+        setResponse(validationIssue("Adjustment quantity cannot be zero."));
+        return;
+      }
+      if (!reason) {
+        setResponse(validationIssue("Enter a reason for the adjustment."));
+        return;
+      }
+    }
+
+    if (eventType === "customer_debt") {
+      if (!customer) {
+        setResponse(validationIssue("Enter the customer's name."));
+        return;
+      }
+      if (amount === null || amount <= 0) {
+        setResponse(validationIssue("Amount must be greater than zero."));
+        return;
+      }
+      if (!currency) {
+        setResponse(validationIssue("Choose a currency."));
+        return;
+      }
+    }
+
+    const data: Record<string, string | number | null> = { date: fields.date };
+    if (eventType === "sale") {
+      data.item = item;
+      data.quantity = quantity;
+      data.amount = amount;
+      data.currency = currency;
+      data.customer = customer || null;
+    }
+
+    if (eventType === "expense") {
+      data.description = description;
+      data.amount = amount;
+      data.currency = currency;
       data.category = fields.category.trim() || null;
-      if (amount !== null) data.amount = amount;
     }
 
     if (eventType === "purchase") {
-      data.item = fields.item.trim() || null;
-      if (quantity !== null) data.quantity = quantity;
-      if (amount !== null) data.amount = amount;
+      data.item = item;
+      data.quantity = quantity;
+      data.amount = amount;
+      data.currency = currency;
       data.supplier = fields.supplier.trim() || null;
     }
 
     if (eventType === "inventory_adjustment") {
-      data.item = fields.item.trim() || null;
-      if (quantity !== null) data.quantity = quantity;
-      data.reason = fields.reason.trim() || null;
-      delete data.currency;
+      data.item = item;
+      data.quantity = quantity;
+      data.reason = reason;
     }
 
     if (eventType === "customer_debt") {
-      data.customer = fields.customer.trim() || null;
-      if (amount !== null) data.amount = amount;
+      data.customer = customer;
+      data.amount = amount;
+      data.currency = currency;
       data.direction = fields.direction;
     }
 
@@ -233,7 +307,7 @@ export function AssistantWorkspace() {
       <div className="grid gap-6 lg:grid-cols-2">
         <form
           onSubmit={onQuery}
-          className="rounded-xl border border-line bg-surface p-5"
+          className="rounded-xl border border-line bg-surface p-5 sm:p-6"
         >
           <h2 className="text-base font-medium">Ask the business</h2>
           <p className="mt-1 text-sm text-muted">
@@ -248,12 +322,12 @@ export function AssistantWorkspace() {
             onChange={(event) => setQueryText(event.target.value)}
             rows={4}
             placeholder="How many shirts do I have left?"
-            className="mt-2 w-full rounded-md border border-line bg-background px-3 py-2 text-sm text-foreground outline-none focus:border-accent"
+            className="mt-2 min-h-28 w-full resize-y rounded-md border border-line bg-background px-3 py-3 text-base text-foreground outline-none focus:border-accent focus:ring-2 focus:ring-accent/30 sm:text-sm"
           />
           <button
             type="submit"
             disabled={busy}
-            className="mt-4 rounded-md bg-accent px-4 py-2 text-sm font-medium text-background disabled:opacity-50"
+            className="mt-4 min-h-11 w-full rounded-md bg-accent px-4 py-2 text-sm font-medium text-background transition-opacity hover:opacity-90 disabled:opacity-50 sm:w-auto"
           >
             {response.kind === "loading" && response.action === "query"
               ? "Asking…"
@@ -263,7 +337,7 @@ export function AssistantWorkspace() {
 
         <form
           onSubmit={onRecordEvent}
-          className="rounded-xl border border-line bg-surface p-5"
+          className="rounded-xl border border-line bg-surface p-5 sm:p-6"
         >
           <h2 className="text-base font-medium">Record an event</h2>
           <p className="mt-1 text-sm text-muted">
@@ -277,7 +351,7 @@ export function AssistantWorkspace() {
             id="event-type"
             value={eventType}
             onChange={(event) => setEventType(event.target.value as EventType)}
-            className="mt-2 w-full rounded-md border border-line bg-background px-3 py-2 text-sm outline-none focus:border-accent"
+            className="mt-2 min-h-11 w-full rounded-md border border-line bg-background px-3 py-3 text-base outline-none focus:border-accent focus:ring-2 focus:ring-accent/30 sm:text-sm"
           >
             {(Object.keys(eventLabels) as EventType[]).map((type) => (
               <option key={type} value={type}>
@@ -304,6 +378,7 @@ export function AssistantWorkspace() {
               value={fields.quantity}
               onChange={(value) => updateField("quantity", value)}
               inputMode="decimal"
+              type="number"
             />
           )}
 
@@ -328,14 +403,20 @@ export function AssistantWorkspace() {
               value={fields.amount}
               onChange={(value) => updateField("amount", value)}
               inputMode="decimal"
+              type="number"
             />
           )}
 
           {eventType !== "inventory_adjustment" && (
-            <Field
+            <SelectField
+              id="currency"
               label="Currency"
               value={fields.currency}
               onChange={(value) => updateField("currency", value)}
+              options={[
+                ["ETB", "ETB — Ethiopian Birr"],
+                ["USD", "USD — US Dollar"],
+              ]}
             />
           )}
 
@@ -370,17 +451,16 @@ export function AssistantWorkspace() {
                 value={fields.customer}
                 onChange={(value) => updateField("customer", value)}
               />
-              <label className="mt-3 block text-sm text-muted" htmlFor="direction">
-                Direction
-              </label>
-              <select
+              <SelectField
                 id="direction"
+                label="Debt direction"
                 value={fields.direction}
-                onChange={(event) => updateField("direction", event.target.value)}
-                className="mt-2 w-full rounded-md border border-line bg-background px-3 py-2 text-sm outline-none focus:border-accent"
-              >
-                <option value="owed_to_business">Owed to business</option>
-              </select>
+                onChange={(value) => updateField("direction", value)}
+                options={[
+                  ["owed_to_business", "Customer owes me"],
+                  ["owed_by_business", "I owe them"],
+                ]}
+              />
             </>
           )}
 
@@ -394,7 +474,7 @@ export function AssistantWorkspace() {
           <button
             type="submit"
             disabled={busy}
-            className="mt-4 rounded-md bg-accent px-4 py-2 text-sm font-medium text-background disabled:opacity-50"
+            className="mt-4 min-h-11 w-full rounded-md bg-accent px-4 py-2 text-sm font-medium text-background transition-opacity hover:opacity-90 disabled:opacity-50 sm:w-auto"
           >
             {response.kind === "loading" && response.action === "event"
               ? "Recording…"
@@ -479,8 +559,42 @@ function Field({
         inputMode={inputMode}
         value={value}
         onChange={(event) => onChange(event.target.value)}
-        className="mt-2 w-full rounded-md border border-line bg-background px-3 py-2 text-sm outline-none focus:border-accent"
+        className="mt-2 min-h-11 w-full rounded-md border border-line bg-background px-3 py-3 text-base outline-none focus:border-accent focus:ring-2 focus:ring-accent/30 sm:text-sm"
       />
+    </>
+  );
+}
+
+function SelectField({
+  id,
+  label,
+  value,
+  onChange,
+  options,
+}: {
+  id: string;
+  label: string;
+  value: string;
+  onChange: (value: string) => void;
+  options: [string, string][];
+}) {
+  return (
+    <>
+      <label className="mt-3 block text-sm text-muted" htmlFor={id}>
+        {label}
+      </label>
+      <select
+        id={id}
+        value={value}
+        onChange={(event) => onChange(event.target.value)}
+        className="mt-2 min-h-11 w-full rounded-md border border-line bg-background px-3 py-3 text-base outline-none focus:border-accent focus:ring-2 focus:ring-accent/30 sm:text-sm"
+      >
+        {options.map(([optionValue, optionLabel]) => (
+          <option key={optionValue} value={optionValue}>
+            {optionLabel}
+          </option>
+        ))}
+      </select>
     </>
   );
 }
