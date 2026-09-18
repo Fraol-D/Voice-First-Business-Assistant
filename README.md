@@ -55,8 +55,8 @@ The Backend Service is the source of truth for business state, validated records
 ## Repository Links
 
 - **Frontend Service:** this repository
-- **Backend Service:** repository URL TBD
-- **AI / Voice Service:** repository URL TBD
+- **Backend Service:** (https://github.com/Al1husse1n/backend-engine)
+- **AI / Voice Service:** (https://github.com/biruk-tafese/ai-engine)
 
 ## Core Flow
 
