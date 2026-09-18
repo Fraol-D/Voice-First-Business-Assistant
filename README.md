@@ -8,7 +8,7 @@ This repository is the **Frontend Service** for the STARK Hackathon 2026 project
 
 The product is a voice-first business assistant for small-business owners. It is intended to let owners record business activity and query their business state using natural language and voice. Typical activity includes sales, expenses, purchases, inventory changes, and customer debts.
 
-This repository is currently at an early stage and hosts the project landing page. The frontend product experience is planned; voice capture, business-state persistence, dashboards, backend APIs, and decision support are not yet implemented here.
+This repository hosts the product landing page and a text-based assistant that talks to the Backend Service over `/api/v1`. Voice capture is not implemented here. The frontend does not own business rules or the canonical business state.
 
 ### Frontend Responsibilities
 
@@ -97,7 +97,15 @@ npm install
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) to view the landing page.
+Open [http://localhost:3000](http://localhost:3000) to view the landing page. The text assistant is at [http://localhost:3000/assistant](http://localhost:3000/assistant).
+
+Copy `.env.example` to `.env.local` and set the backend origin:
+
+```text
+NEXT_PUBLIC_API_URL=http://localhost:8000
+```
+
+Do not hardcode the backend URL in application code. Restart `npm run dev` after changing environment variables.
 
 To build and lint locally:
 
