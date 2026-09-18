@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, type FormEvent, type HTMLAttributes } from "react";
+import { useEffect, useRef, useState, type FormEvent, type HTMLAttributes } from "react";
 import { createEvent, healthCheck, queryBusiness } from "@/lib/api/client";
 import type { ApiFailure, EventType } from "@/lib/api/types";
 import { DEFAULT_LANGUAGE, MVP_BUSINESS_ID } from "@/lib/config";
@@ -53,6 +53,9 @@ const eventLabels: Record<EventType, string> = {
 export function AssistantWorkspace() {
   const [health, setHealth] = useState<"checking" | "ok" | "down">("checking");
   const [queryText, setQueryText] = useState("");
+  const [chatHistory, setChatHistory] = useState<
+    Array<{ sender: "user" | "assistant"; text: string; detail?: string }>
+  >([]);
   const [eventType, setEventType] = useState<EventType>("sale");
   const [fields, setFields] = useState({
     item: "",
@@ -69,6 +72,7 @@ export function AssistantWorkspace() {
   });
   const [response, setResponse] = useState<ResponseState>({ kind: "idle" });
   const busy = response.kind === "loading";
+  const chatContainerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -83,6 +87,12 @@ export function AssistantWorkspace() {
     };
   }, []);
 
+  useEffect(() => {
+    if (chatContainerRef.current) {
+      chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
+    }
+  }, [chatHistory, response]);
+
   function updateField(name: keyof typeof fields, value: string) {
     setFields((current) => ({ ...current, [name]: value }));
   }
@@ -93,6 +103,7 @@ export function AssistantWorkspace() {
       return;
     }
     const query = queryText.trim();
+    setQueryText("");
     if (!query) {
       setResponse({
         kind: "issue",
@@ -101,6 +112,8 @@ export function AssistantWorkspace() {
       });
       return;
     }
+
+    setChatHistory((prev) => [...prev, { sender: "user", text: query }]);
 
     setResponse({ kind: "loading", action: "query" });
     const result = await queryBusiness({
@@ -111,8 +124,26 @@ export function AssistantWorkspace() {
 
     if (!result.ok) {
       setResponse(issueFromFailure(result));
+      setChatHistory((prev) => [
+        ...prev,
+        { sender: "assistant", text: result.message },
+      ]);
       return;
     }
+
+    const detail =
+      result.data.result === undefined
+        ? undefined
+        : JSON.stringify(result.data.result, null, 2);
+
+    setChatHistory((prev) => [
+      ...prev,
+      {
+        sender: "assistant",
+        text: result.data.message,
+        detail,
+      },
+    ]);
 
     setResponse({
       kind: "success",
@@ -120,10 +151,7 @@ export function AssistantWorkspace() {
         ? `Query · ${result.data.query_type}`
         : "Query",
       message: result.data.message,
-      detail:
-        result.data.result === undefined
-          ? undefined
-          : JSON.stringify(result.data.result, null, 2),
+      detail,
     });
   }
 
@@ -305,35 +333,87 @@ export function AssistantWorkspace() {
       </div>
 
       <div className="grid gap-6 lg:grid-cols-2">
-        <form
-          onSubmit={onQuery}
-          className="rounded-xl border border-line bg-surface p-5 sm:p-6"
-        >
-          <h2 className="text-base font-medium">Ask the business</h2>
-          <p className="mt-1 text-sm text-muted">
-            Sent to <code className="text-foreground">POST /api/v1/query</code>
-          </p>
-          <label className="mt-4 block text-sm text-muted" htmlFor="query">
-            Question
-          </label>
-          <textarea
-            id="query"
-            value={queryText}
-            onChange={(event) => setQueryText(event.target.value)}
-            rows={4}
-            placeholder="How many shirts do I have left?"
-            className="mt-2 min-h-28 w-full resize-y rounded-md border border-line bg-background px-3 py-3 text-base text-foreground outline-none focus:border-accent focus:ring-2 focus:ring-accent/30 sm:text-sm"
-          />
-          <button
-            type="submit"
-            disabled={busy}
-            className="mt-4 min-h-11 w-full rounded-md bg-accent px-4 py-2 text-sm font-medium text-background transition-opacity hover:opacity-90 disabled:opacity-50 sm:w-auto"
+        <div className="flex h-[520px] flex-col overflow-hidden rounded-xl border border-line bg-surface">
+          <div className="border-b border-line p-5 pb-3 sm:p-6 sm:pb-3">
+            <h2 className="text-base font-medium">Ask the business</h2>
+            <p className="mt-1 text-sm text-muted">
+              Sent to <code className="text-foreground">POST /api/v1/query</code>
+            </p>
+          </div>
+
+          <div
+            ref={chatContainerRef}
+            className="flex-1 space-y-3 overflow-y-auto p-4 sm:p-5"
           >
-            {response.kind === "loading" && response.action === "query"
-              ? "Asking…"
-              : "Ask"}
-          </button>
-        </form>
+            {chatHistory.length === 0 ? (
+              <p className="text-sm text-muted">
+                Ask questions about your business items, sales, stock, or expenses.
+              </p>
+            ) : (
+              chatHistory.map((msg, index) => (
+                <div
+                  key={index}
+                  className={`flex flex-col ${
+                    msg.sender === "user" ? "items-end" : "items-start"
+                  }`}
+                >
+                  <div
+                    className={`max-w-[85%] rounded-lg px-3 py-2 text-sm ${
+                      msg.sender === "user"
+                        ? "bg-accent text-background"
+                        : "border border-line bg-background text-foreground"
+                    }`}
+                  >
+                    <p className="whitespace-pre-wrap">{msg.text}</p>
+                    {msg.detail ? (
+                      <pre className="mt-2 overflow-x-auto rounded-md border border-line bg-surface p-2 text-xs text-muted">
+                        {msg.detail}
+                      </pre>
+                    ) : null}
+                  </div>
+                </div>
+              ))
+            )}
+            {response.kind === "loading" && response.action === "query" && (
+              <div className="flex items-start">
+                <div className="max-w-[85%] rounded-lg border border-line bg-background px-3 py-2 text-sm italic text-muted">
+                  Thinking…
+                </div>
+              </div>
+            )}
+          </div>
+
+          <form
+            onSubmit={onQuery}
+            className="border-t border-line bg-surface p-3 sm:p-4"
+          >
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-end">
+              <textarea
+                id="query"
+                value={queryText}
+                onChange={(event) => setQueryText(event.target.value)}
+                onKeyDown={(event) => {
+                  if (event.key === "Enter" && !event.shiftKey) {
+                    event.preventDefault();
+                    event.currentTarget.form?.requestSubmit();
+                  }
+                }}
+                rows={2}
+                placeholder="How many shirts do I have left?"
+                className="w-full resize-none rounded-md border border-line bg-background px-3 py-2 text-base text-foreground outline-none focus:border-accent focus:ring-2 focus:ring-accent/30 sm:text-sm"
+              />
+              <button
+                type="submit"
+                disabled={busy}
+                className="min-h-10 rounded-md bg-accent px-4 py-2 text-sm font-medium text-background transition-opacity hover:opacity-90 disabled:opacity-50 sm:w-auto"
+              >
+                {response.kind === "loading" && response.action === "query"
+                  ? "Asking…"
+                  : "Ask"}
+              </button>
+            </div>
+          </form>
+        </div>
 
         <form
           onSubmit={onRecordEvent}
@@ -560,6 +640,12 @@ function Field({
         value={value}
         onChange={(event) => onChange(event.target.value)}
         className="mt-2 min-h-11 w-full rounded-md border border-line bg-background px-3 py-3 text-base outline-none focus:border-accent focus:ring-2 focus:ring-accent/30 sm:text-sm"
+        onKeyDown={(event) => {
+          if (event.key === "Enter" && !event.shiftKey) {
+            event.preventDefault();
+            event.currentTarget.form?.requestSubmit();
+          }
+        }}
       />
     </>
   );
