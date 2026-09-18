@@ -1,9 +1,11 @@
+import Link from "next/link";
 import { ProductPreview } from "@/components/landing/product-preview";
 
 const navLinks = [
   { href: "#product", label: "Product" },
   { href: "#how-it-works", label: "How it works" },
   { href: "#demo", label: "Demo" },
+  { href: "/assistant", label: "Assistant" },
 ] as const;
 
 const steps = [
@@ -75,15 +77,25 @@ export default function Home() {
           </a>
 
           <nav className="hidden items-center gap-7 text-sm text-muted md:flex">
-            {navLinks.map((link) => (
-              <a
-                key={link.href}
-                href={link.href}
-                className="transition-colors hover:text-foreground"
-              >
-                {link.label}
-              </a>
-            ))}
+            {navLinks.map((link) =>
+              link.href.startsWith("/") ? (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  className="transition-colors hover:text-foreground"
+                >
+                  {link.label}
+                </Link>
+              ) : (
+                <a
+                  key={link.href}
+                  href={link.href}
+                  className="transition-colors hover:text-foreground"
+                >
+                  {link.label}
+                </a>
+              ),
+            )}
           </nav>
 
           <div className="flex shrink-0 items-center gap-2 sm:gap-3">
@@ -92,24 +104,34 @@ export default function Home() {
                 Menu
               </summary>
               <div className="absolute right-0 mt-2 w-44 rounded-lg border border-line bg-surface p-2 shadow-lg">
-                {navLinks.map((link) => (
-                  <a
-                    key={link.href}
-                    href={link.href}
-                    className="block rounded-md px-3 py-2 text-sm text-muted hover:bg-surface-2 hover:text-foreground"
-                  >
-                    {link.label}
-                  </a>
-                ))}
+                {navLinks.map((link) =>
+                  link.href.startsWith("/") ? (
+                    <Link
+                      key={link.href}
+                      href={link.href}
+                      className="block rounded-md px-3 py-2 text-sm text-muted hover:bg-surface-2 hover:text-foreground"
+                    >
+                      {link.label}
+                    </Link>
+                  ) : (
+                    <a
+                      key={link.href}
+                      href={link.href}
+                      className="block rounded-md px-3 py-2 text-sm text-muted hover:bg-surface-2 hover:text-foreground"
+                    >
+                      {link.label}
+                    </a>
+                  ),
+                )}
               </div>
             </details>
-            <a
-              href="#demo"
+            <Link
+              href="/assistant"
               className="shrink-0 rounded-md bg-accent px-3 py-1.5 text-sm font-medium text-background transition-opacity hover:opacity-90"
             >
               <span className="sm:hidden">Try</span>
               <span className="hidden sm:inline">Try the assistant</span>
-            </a>
+            </Link>
           </div>
         </div>
       </header>
@@ -146,12 +168,12 @@ export default function Home() {
                 className="enter-up mt-8 flex flex-wrap items-center gap-3"
                 style={{ animationDelay: "200ms" }}
               >
-                <a
-                  href="#demo"
+                <Link
+                  href="/assistant"
                     className="rounded-md bg-accent px-4 py-2.5 text-sm font-medium text-background transition-opacity hover:opacity-90"
                 >
                   Try the assistant
-                </a>
+                </Link>
                 <a
                   href="#how-it-works"
                     className="rounded-md border border-line px-4 py-2.5 text-sm text-foreground transition-colors hover:bg-surface-2"
@@ -224,12 +246,12 @@ export default function Home() {
               business, and ask questions when you need to decide.
             </p>
             <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
-              <a
-                href="#demo"
+              <Link
+                href="/assistant"
                 className="rounded-md bg-accent px-4 py-2.5 text-sm font-medium text-background transition-opacity hover:opacity-90"
               >
                 Try the assistant
-              </a>
+              </Link>
               <a
                 href="#how-it-works"
                 className="rounded-md border border-line px-4 py-2.5 text-sm text-foreground transition-colors hover:bg-surface-2"
@@ -256,6 +278,9 @@ export default function Home() {
             <a href="#how-it-works" className="hover:text-foreground">
               How it works
             </a>
+            <Link href="/assistant" className="hover:text-foreground">
+              Assistant
+            </Link>
             <a
               href="https://github.com/Fraol-D/Voice-First-Business-Assistant"
               className="hover:text-foreground"
