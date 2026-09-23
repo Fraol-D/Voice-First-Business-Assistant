@@ -8,7 +8,7 @@ This repository is the **Frontend Service** for the STARK Hackathon 2026 project
 
 The product is a voice-first business assistant for small-business owners. It is intended to let owners record business activity and query their business state using natural language and voice. Typical activity includes sales, expenses, purchases, inventory changes, and customer debts.
 
-This repository hosts the product landing page and a text-based assistant that talks to the Backend Service over `/api/v1`. Voice capture is not implemented here. The frontend does not own business rules or the canonical business state.
+This repository hosts the product landing page, a text-based assistant, and the Voxide voice widget. The widget registers frontend capabilities. Those capabilities call the existing API client (`createEvent` and `queryBusiness`), which talks to the Backend Service over `/api/v1`. The frontend does not contain a voice backend or a business-logic backend, and it does not own business rules or the canonical business state.
 
 ### Frontend Responsibilities
 
@@ -28,9 +28,9 @@ The frontend presents data and interaction states. It does not own business rule
 
 The project is split across three services:
 
-1. **Frontend Service** — this repository. Owns the user interface, voice interaction UI, dashboards, visualizations, transaction/history views, and service communication.
+1. **Frontend Service** — this repository. Owns the user interface, the Voxide voice widget and its capability handlers, dashboards, visualizations, transaction/history views, and calls to the Backend Service through the existing API client.
 2. **Backend Service** — a separate repository. Owns business data, validation, business logic, calculations, persistence, and the authoritative business state.
-3. **AI / Voice Service** — a separate repository. Owns natural-language and voice interaction, Voxide integration, and later ScholarXIV integration. It interprets requests and coordinates with the Backend Service; it does not replace the backend as the source of truth.
+3. **AI / Voice Service** — a separate repository for additional language tooling, including later ScholarXIV integration. It is not the Voxide integration used by this MVP. Live voice is the `@voxide/react` widget in this frontend. Voxide's hosted service handles the voice session. Capability handlers only forward structured requests through the existing API client. This repository does not implement that voice service or the business backend.
 
 ## Architecture
 
@@ -39,9 +39,10 @@ User
 	|
 	v
 Frontend Service
+	Voxide widget and capability handlers
 	|
 	v
-AI / Voice Service
+Existing API client
 	|
 	v
 Backend Service
@@ -50,7 +51,7 @@ Backend Service
 Database
 ```
 
-The Backend Service is the source of truth for business state, validated records, and deterministic business calculations. The AI / Voice Service helps interpret and express natural-language interactions, while the Frontend Service presents the experience.
+The Backend Service is the source of truth for business state, validated records, and deterministic business calculations. The frontend Voxide capabilities interpret a spoken request only far enough to call `createEvent` or `queryBusiness`. They do not calculate or store business state. Voxide's hosted voice session stays outside this repository.
 
 ## Repository Links
 
@@ -105,7 +106,9 @@ Copy `.env.example` to `.env.local` and set the backend origin:
 NEXT_PUBLIC_API_URL=http://localhost:8000
 ```
 
-Do not hardcode the backend URL in application code. Restart `npm run dev` after changing environment variables.
+Voice is optional. Set `NEXT_PUBLIC_VOXIDE_PUBLIC_KEY` to a real Voxide publishable key to mount the widget. If that variable is missing, the widget stays off and the text assistant still works.
+
+Do not hardcode the backend URL or a Voxide key in application code. Restart `npm run dev` after changing environment variables.
 
 To build and lint locally:
 
