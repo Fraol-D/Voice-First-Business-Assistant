@@ -38,9 +38,9 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     >
       <body className="min-h-full flex flex-col">
         {children}
-        {/* Voxide voice widget — mounted globally so it persists across
-            all route navigations and never interrupts an in-progress call.
-            See src/lib/voxide/client.ts for the 6 registered capabilities. */}
+        {/* Voxide voice widget. Stays mounted across navigations when a
+            public key is configured. Renders nothing when the key is absent.
+            See src/lib/voxide/client.ts for the registered capabilities. */}
         <AssistantWidget />
       </body>
     </html>

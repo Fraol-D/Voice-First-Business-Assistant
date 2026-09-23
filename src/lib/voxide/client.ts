@@ -8,37 +8,42 @@
  *   1 read-only "query" action  → POST /api/v1/query
  *
  * Design principles (from the API contract):
- *   - Handlers are intentionally thin: fetch + return response as-is.
+ *   - Handlers are intentionally thin: they call the existing API client.
  *   - The backend owns validation, business rules, and persistence.
- *   - Handlers never construct their own success/error/clarification messages.
- *   - If the backend returns `needs_clarification`, Voxide's model will
- *     naturally ask the user for the missing field and re-call the action.
+ *   - Handlers return the API client's result, including clarification.
+ *   - If the backend needs clarification, Voxide's model asks and retries.
  *
  * @see API_CONTRACT.md  — full backend contract
  * @see voxide_capability.md — capability registration spec
  * @see voxide_integration.md — SDK integration guide
  */
 
-import { VoxideClient } from "@voxide/react";
-import { MVP_BUSINESS_ID, DEFAULT_LANGUAGE, getApiBaseUrl } from "@/lib/config";
+import { VoxideClient, type VoxideAction } from "@voxide/react";
+import { createEvent, queryBusiness } from "@/lib/api/client";
+import type { EventType } from "@/lib/api/types";
+import { MVP_BUSINESS_ID, DEFAULT_LANGUAGE } from "@/lib/config";
 
 // ---------------------------------------------------------------------------
 // Client initialisation
 // ---------------------------------------------------------------------------
 
 /**
- * The publishable key is safe to ship in the browser.
- * Source it from the environment so it's easy to rotate per deployment.
- * Falls back to a placeholder if the env var is not set.
+ * Publishable key from the environment. No placeholder: without a real key
+ * the widget stays unmounted and the rest of the app keeps working.
  */
-const publicKey =
-  process.env.NEXT_PUBLIC_VOXIDE_PUBLIC_KEY ?? "vox_pub_XXXXXXXXXXXX";
+const publicKey = process.env.NEXT_PUBLIC_VOXIDE_PUBLIC_KEY?.trim();
 
 /**
- * Single Voxide client instance shared across the app.
- * Imported by the <AssistantWidget /> component to render the voice UI.
+ * Shared client when a real key is configured. Null leaves voice disabled.
  */
-export const ai = new VoxideClient({ publicKey });
+export const ai: VoxideClient | null = publicKey
+  ? new VoxideClient({ publicKey })
+  : null;
+
+/** Same currency choices as the event form. Omitted voice currency uses ETB. */
+const CURRENCIES = ["ETB", "USD"] as const;
+const DEFAULT_CURRENCY = "ETB";
+const DEBT_DIRECTIONS = ["owed_to_business", "owed_by_business"] as const;
 
 // ---------------------------------------------------------------------------
 // Shared handler helpers
@@ -64,66 +69,168 @@ function getLanguage(): string {
   return DEFAULT_LANGUAGE;
 }
 
-/**
- * Submits a business event to the backend.
- *
- * Every `record*` capability handler funnels through this function.
- * It builds the request payload per the API contract (§5) and returns
- * the backend's JSON response **as-is** — the Voxide model composes
- * what it actually says from the structured result.
- *
- * @param eventType - One of: sale, expense, purchase, inventory_adjustment, customer_debt
- * @param data      - The event-specific fields (item, quantity, amount, etc.)
- * @returns The backend's raw JSON response (success, clarification, or error)
- */
-async function submitEvent(
-  eventType: string,
-  data: Record<string, unknown>,
-): Promise<unknown> {
-  const baseUrl = getApiBaseUrl();
+function asText(value: unknown): string | null {
+  if (typeof value !== "string") {
+    return null;
+  }
+  const trimmed = value.trim();
+  return trimmed ? trimmed : null;
+}
 
-  const res = await fetch(`${baseUrl}/api/v1/events`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      business_id: getBusinessId(),
-      language: getLanguage(),
-      event_type: eventType,
-      data,
-    }),
-  });
+function asNumber(value: unknown): number | null {
+  if (typeof value === "number" && Number.isFinite(value)) {
+    return value;
+  }
+  if (typeof value === "string" && value.trim()) {
+    const parsed = Number(value);
+    if (Number.isFinite(parsed)) {
+      return parsed;
+    }
+  }
+  return null;
+}
 
-  // Return the backend's response object untouched — never construct
-  // our own success/error/clarification messages (API contract §17,
-  // voxide_capability.md § "Response handling — important").
-  return await res.json();
+function currencyOf(value: unknown): string {
+  const text = asText(value)?.toUpperCase();
+  if (text && (CURRENCIES as readonly string[]).includes(text)) {
+    return text;
+  }
+  return DEFAULT_CURRENCY;
+}
+
+function directionOf(
+  value: unknown,
+): (typeof DEBT_DIRECTIONS)[number] | null {
+  const text = asText(value);
+  if (text && (DEBT_DIRECTIONS as readonly string[]).includes(text)) {
+    return text as (typeof DEBT_DIRECTIONS)[number];
+  }
+  return null;
+}
+
+function withDate(
+  data: Record<string, string | number | null>,
+  value: unknown,
+): Record<string, string | number | null> {
+  const date = asText(value);
+  if (date) {
+    data.date = date;
+  }
+  return data;
+}
+
+function missingFields(fields: string[], message: string) {
+  return {
+    ok: false as const,
+    kind: "clarification" as const,
+    message,
+    missing_fields: fields,
+  };
 }
 
 /**
- * Submits a natural-language query to the backend.
- *
- * The `queryBusiness` capability handler calls this function.
- * It builds the request payload per the API contract (§9) and returns
- * the backend's JSON response **as-is**.
- *
- * @param query - The user's natural-language question (e.g. "How much did I sell today?")
- * @returns The backend's raw JSON response (success or error)
+ * Submits a business event through the shared API client.
+ * The client owns URL resolution, JSON parsing, and clarification mapping.
  */
-async function submitQuery(query: string): Promise<unknown> {
-  const baseUrl = getApiBaseUrl();
-
-  const res = await fetch(`${baseUrl}/api/v1/query`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      business_id: getBusinessId(),
-      language: getLanguage(),
-      query,
-    }),
+function submitEvent(
+  eventType: EventType,
+  data: Record<string, string | number | null>,
+) {
+  return createEvent({
+    business_id: getBusinessId(),
+    language: getLanguage(),
+    event_type: eventType,
+    data,
   });
+}
 
-  // Return the backend's response object untouched.
-  return await res.json();
+/** Submits a natural-language query through the shared API client. */
+function submitQuery(query: string) {
+  return queryBusiness({
+    business_id: getBusinessId(),
+    language: getLanguage(),
+    query,
+  });
+}
+
+function confirmationDetail(
+  actionName: string,
+  args: Record<string, unknown>,
+): string {
+  const currency = currencyOf(args.currency);
+  if (actionName === "recordSale") {
+    return [
+      `Item: ${asText(args.item) ?? args.item}`,
+      `Quantity: ${asNumber(args.quantity) ?? args.quantity}`,
+      `Amount: ${asNumber(args.amount) ?? args.amount}`,
+      `Currency: ${currency}`,
+      asText(args.customer) ? `Customer: ${asText(args.customer)}` : null,
+    ]
+      .filter((line): line is string => Boolean(line))
+      .join("\n");
+  }
+  if (actionName === "recordExpense") {
+    return [
+      `Description: ${asText(args.description) ?? args.description}`,
+      `Amount: ${asNumber(args.amount) ?? args.amount}`,
+      `Currency: ${currency}`,
+    ].join("\n");
+  }
+  if (actionName === "recordPurchase") {
+    return [
+      `Item: ${asText(args.item) ?? args.item}`,
+      `Quantity: ${asNumber(args.quantity) ?? args.quantity}`,
+      `Amount: ${asNumber(args.amount) ?? args.amount}`,
+      `Currency: ${currency}`,
+      asText(args.supplier) ? `Supplier: ${asText(args.supplier)}` : null,
+    ]
+      .filter((line): line is string => Boolean(line))
+      .join("\n");
+  }
+  if (actionName === "recordAdjustment") {
+    const quantity = asNumber(args.quantity);
+    const effect =
+      quantity === null
+        ? ""
+        : quantity > 0
+          ? " (increases stock)"
+          : quantity < 0
+            ? " (decreases stock)"
+            : " (no stock change)";
+    return [
+      `Item: ${asText(args.item) ?? args.item}`,
+      `Quantity: ${quantity ?? args.quantity}${effect}`,
+      `Reason: ${asText(args.reason) ?? "none"}`,
+    ].join("\n");
+  }
+  if (actionName === "recordDebt") {
+    return [
+      `Customer: ${asText(args.customer) ?? args.customer}`,
+      `Amount: ${asNumber(args.amount) ?? args.amount}`,
+      `Currency: ${currency}`,
+      `Direction: ${asText(args.direction) ?? args.direction}`,
+    ].join("\n");
+  }
+  return "";
+}
+
+/**
+ * SDK default confirmation only shows the action description.
+ * This handler shows the values that will be recorded. `dangerous: true`
+ * still turns confirmation on; this only replaces the prompt text.
+ */
+function confirmRecord(
+  action: VoxideAction,
+  args: Record<string, unknown>,
+): boolean {
+  if (typeof window === "undefined") {
+    return false;
+  }
+  const detail = confirmationDetail(action.name, args);
+  const message = detail
+    ? `Confirm this record?\n\n${detail}`
+    : `Confirm: ${action.description}`;
+  return window.confirm(message);
 }
 
 // ---------------------------------------------------------------------------
@@ -140,6 +247,8 @@ async function submitQuery(query: string): Promise<unknown> {
  * Every `record*` action is `dangerous: true` (prompts user confirmation).
  * `queryBusiness` is `dangerous: false` (read-only, no confirmation needed).
  */
+if (ai) {
+ai.onConfirmation(confirmRecord);
 ai.register({
   // -------------------------------------------------------------------------
   // recordSale — POST /api/v1/events with event_type: "sale"
@@ -153,11 +262,43 @@ ai.register({
       item:     { required: true,  type: "string" },
       quantity: { required: true,  type: "number" },
       amount:   { required: true,  type: "number" },
-      customer: {                  type: "string" },  // optional
+      currency: {
+        type: "string",
+        enum: [...CURRENCIES],
+        description: "ETB or USD. Omit to record ETB, the event form default.",
+      },
+      customer: { type: "string", sensitive: true },
       date:     {                  type: "string" },  // optional, ISO date
     },
     dangerous: true,
-    handler: (params: Record<string, unknown>) => submitEvent("sale", params),
+    handler: (params: Record<string, unknown>) => {
+      const item = asText(params.item);
+      const quantity = asNumber(params.quantity);
+      const amount = asNumber(params.amount);
+      if (!item || quantity === null || amount === null) {
+        return missingFields(
+          [
+            !item ? "item" : "",
+            quantity === null ? "quantity" : "",
+            amount === null ? "amount" : "",
+          ].filter(Boolean),
+          "A sale needs an item, quantity, and amount.",
+        );
+      }
+      return submitEvent(
+        "sale",
+        withDate(
+          {
+            item,
+            quantity,
+            amount,
+            currency: currencyOf(params.currency),
+            customer: asText(params.customer),
+          },
+          params.date,
+        ),
+      );
+    },
   },
 
   // -------------------------------------------------------------------------
@@ -171,11 +312,40 @@ ai.register({
     params: {
       description: { required: true,  type: "string" },
       amount:      { required: true,  type: "number" },
+      currency: {
+        type: "string",
+        enum: [...CURRENCIES],
+        description: "ETB or USD. Omit to record ETB, the event form default.",
+      },
       category:    {                  type: "string" },  // optional
       date:        {                  type: "string" },  // optional, ISO date
     },
     dangerous: true,
-    handler: (params: Record<string, unknown>) => submitEvent("expense", params),
+    handler: (params: Record<string, unknown>) => {
+      const description = asText(params.description);
+      const amount = asNumber(params.amount);
+      if (!description || amount === null) {
+        return missingFields(
+          [
+            !description ? "description" : "",
+            amount === null ? "amount" : "",
+          ].filter(Boolean),
+          "An expense needs a description and an amount.",
+        );
+      }
+      return submitEvent(
+        "expense",
+        withDate(
+          {
+            description,
+            amount,
+            currency: currencyOf(params.currency),
+            category: asText(params.category),
+          },
+          params.date,
+        ),
+      );
+    },
   },
 
   // -------------------------------------------------------------------------
@@ -190,11 +360,43 @@ ai.register({
       item:     { required: true,  type: "string" },
       quantity: { required: true,  type: "number" },
       amount:   { required: true,  type: "number" },
-      supplier: {                  type: "string" },  // optional
+      currency: {
+        type: "string",
+        enum: [...CURRENCIES],
+        description: "ETB or USD. Omit to record ETB, the event form default.",
+      },
+      supplier: { type: "string", sensitive: true },
       date:     {                  type: "string" },  // optional, ISO date
     },
     dangerous: true,
-    handler: (params: Record<string, unknown>) => submitEvent("purchase", params),
+    handler: (params: Record<string, unknown>) => {
+      const item = asText(params.item);
+      const quantity = asNumber(params.quantity);
+      const amount = asNumber(params.amount);
+      if (!item || quantity === null || amount === null) {
+        return missingFields(
+          [
+            !item ? "item" : "",
+            quantity === null ? "quantity" : "",
+            amount === null ? "amount" : "",
+          ].filter(Boolean),
+          "A purchase needs an item, quantity, and amount.",
+        );
+      }
+      return submitEvent(
+        "purchase",
+        withDate(
+          {
+            item,
+            quantity,
+            amount,
+            currency: currencyOf(params.currency),
+            supplier: asText(params.supplier),
+          },
+          params.date,
+        ),
+      );
+    },
   },
 
   // -------------------------------------------------------------------------
@@ -206,16 +408,37 @@ ai.register({
   // -------------------------------------------------------------------------
   recordAdjustment: {
     description:
-      "Adjust inventory quantity for an item, e.g. for damage or a stock correction",
+      "Adjust inventory quantity for an item. A positive quantity increases stock. A negative quantity decreases stock. Damage, loss, or spoilage must use a negative quantity.",
     params: {
       item:     { required: true,  type: "string" },
-      quantity: { required: true,  type: "number" },  // positive = increase, negative = decrease
+      quantity: {
+        required: true,
+        type: "number",
+        description:
+          "Positive quantity increases stock. Negative quantity decreases stock. For damage or loss, send a negative number.",
+      },
       reason:   {                  type: "string" },  // optional
       date:     {                  type: "string" },  // optional, ISO date
     },
     dangerous: true,
-    handler: (params: Record<string, unknown>) =>
-      submitEvent("inventory_adjustment", params),
+    handler: (params: Record<string, unknown>) => {
+      const item = asText(params.item);
+      const quantity = asNumber(params.quantity);
+      if (!item || quantity === null) {
+        return missingFields(
+          [!item ? "item" : "", quantity === null ? "quantity" : ""].filter(
+            Boolean,
+          ),
+          "An inventory adjustment needs an item and a signed quantity.",
+        );
+      }
+      const data: Record<string, string | number | null> = { item, quantity };
+      const reason = asText(params.reason);
+      if (reason) {
+        data.reason = reason;
+      }
+      return submitEvent("inventory_adjustment", withDate(data, params.date));
+    },
   },
 
   // -------------------------------------------------------------------------
@@ -228,14 +451,51 @@ ai.register({
     description:
       "Record money a customer owes the business, or money the business owes a customer",
     params: {
-      customer:  { required: true,  type: "string" },
+      customer:  { required: true, type: "string", sensitive: true },
       amount:    { required: true,  type: "number" },
-      direction: { required: true,  type: "string" },  // "owed_to_business" | "owed_by_business"
+      currency: {
+        type: "string",
+        enum: [...CURRENCIES],
+        description: "ETB or USD. Omit to record ETB, the event form default.",
+      },
+      direction: {
+        required: true,
+        type: "string",
+        enum: [...DEBT_DIRECTIONS],
+        description:
+          "owed_to_business when the customer owes the business. owed_by_business when the business owes the customer.",
+      },
       date:      {                  type: "string" },  // optional, ISO date
     },
     dangerous: true,
-    handler: (params: Record<string, unknown>) =>
-      submitEvent("customer_debt", params),
+    handler: (params: Record<string, unknown>) => {
+      const customer = asText(params.customer);
+      const amount = asNumber(params.amount);
+      const direction = directionOf(params.direction);
+      const missing = [
+        !customer ? "customer" : "",
+        amount === null ? "amount" : "",
+        !direction ? "direction" : "",
+      ].filter(Boolean);
+      if (!customer || amount === null || !direction) {
+        return missingFields(
+          missing,
+          "Customer debt needs a customer, an amount, and direction owed_to_business or owed_by_business.",
+        );
+      }
+      return submitEvent(
+        "customer_debt",
+        withDate(
+          {
+            customer,
+            amount,
+            currency: currencyOf(params.currency),
+            direction,
+          },
+          params.date,
+        ),
+      );
+    },
   },
 
   // -------------------------------------------------------------------------
@@ -252,10 +512,16 @@ ai.register({
       query: { required: true, type: "string" },
     },
     dangerous: false,
-    handler: (params: Record<string, unknown>) =>
-      submitQuery(params.query as string),
+    handler: (params: Record<string, unknown>) => {
+      const query = asText(params.query);
+      if (!query) {
+        return missingFields(["query"], "A business question is required.");
+      }
+      return submitQuery(query);
+    },
   },
 });
+}
 
 // ---------------------------------------------------------------------------
 // bindState — intentionally NOT wired up

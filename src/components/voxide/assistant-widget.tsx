@@ -8,9 +8,9 @@
  *   2. An in-progress voice call is never interrupted by navigation
  *   3. The voice assistant is available on every page (landing, assistant, etc.)
  *
- * The widget receives the pre-configured `ai` client from `@/lib/voxide/client`,
- * which already has all six capabilities registered. No additional setup is
- * needed here — VoxideWidget initialises itself.
+ * The widget receives the pre-configured `ai` client from `@/lib/voxide/client`
+ * when `NEXT_PUBLIC_VOXIDE_PUBLIC_KEY` is set. Without that key it renders
+ * nothing, and the rest of the app keeps working.
  *
  * No extra props are passed to VoxideWidget (no `theme`, `accentColor`, `position`,
  * etc.) so that all appearance settings are controlled from the Voxide dashboard.
@@ -25,6 +25,9 @@ import { VoxideWidget } from "@voxide/react";
 import { ai } from "@/lib/voxide/client";
 
 export function AssistantWidget() {
+  if (!ai) {
+    return null;
+  }
   // Pass nothing but the client. Every other prop outranks the dashboard,
   // so hardcoding one makes the matching Appearance control silently do nothing.
   return <VoxideWidget client={ai} />;
