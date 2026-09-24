@@ -47,10 +47,10 @@ export function ProductPreview() {
       </div>
 
       <div className="space-y-5 p-4 sm:p-5">
-        <div className="voice-pulse rounded-lg border border-accent/25 bg-accent-dim p-3.5 sm:p-4">
+        <div className="voice-pulse rounded-lg border border-voice/25 bg-voice-dim p-3.5 sm:p-4">
           <div className="flex min-w-0 items-start gap-3 sm:items-center">
             <span
-              className="flex size-8 shrink-0 items-center justify-center rounded-md bg-accent text-background"
+              className="flex size-8 shrink-0 items-center justify-center rounded-md bg-voice text-background"
               aria-label="Voice activity"
             >
               <svg
@@ -71,9 +71,9 @@ export function ProductPreview() {
               aria-hidden="true"
             >
               {waveDelays.map((delay, index) => (
-                <span
+                  <span
                   key={index}
-                  className="wave-bar w-0.75 rounded-full bg-accent"
+                  className="wave-bar w-0.75 rounded-full bg-voice"
                   style={{
                     height: `${10 + (index % 4) * 4}px`,
                     animationDelay: `${delay}s`,
@@ -86,7 +86,7 @@ export function ProductPreview() {
             </p>
           </div>
           <p className="mt-3 text-sm leading-6 text-muted wrap-break-word">
-            <span className="text-accent">Assistant</span>
+            <span className="text-voice">Voxide</span>
             {" — You sold ETB 8,450 today across 17 transactions."}
           </p>
         </div>
