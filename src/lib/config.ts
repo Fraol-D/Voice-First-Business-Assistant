@@ -3,6 +3,9 @@ export const MVP_BUSINESS_ID = "business_123";
 
 export const DEFAULT_LANGUAGE = "en";
 
+// Keep voice disabled until a controlled Voxide test explicitly enables it.
+export const VOXIDE_ENABLED = process.env.NEXT_PUBLIC_VOXIDE_ENABLED === "true";
+
 export function getApiBaseUrl(): string | undefined {
   const value = process.env.NEXT_PUBLIC_API_URL?.trim();
   if (!value) {

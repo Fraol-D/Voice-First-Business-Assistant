@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { ProductPreview } from "@/components/landing/product-preview";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 const navLinks = [
   { href: "#product", label: "Product" },
@@ -72,7 +73,7 @@ export default function Home() {
           >
             <Mark />
             <span className="truncate text-sm font-medium tracking-tight">
-              Voice-First Business Assistant
+              Meri
             </span>
           </a>
 
@@ -100,8 +101,22 @@ export default function Home() {
 
           <div className="flex shrink-0 items-center gap-2 sm:gap-3">
             <details className="relative md:hidden">
-              <summary className="cursor-pointer list-none rounded-md border border-line px-2.5 py-1.5 text-sm text-muted">
-                Menu
+              <summary
+                className="flex size-11 cursor-pointer list-none items-center justify-center rounded-lg border border-line text-muted transition-colors hover:border-accent hover:text-foreground"
+                aria-label="Open navigation menu"
+                title="Open navigation menu"
+              >
+                <svg
+                  aria-hidden="true"
+                  viewBox="0 0 24 24"
+                  className="size-5"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.8"
+                  strokeLinecap="round"
+                >
+                  <path d="M4 7h16M4 12h16M4 17h16" />
+                </svg>
               </summary>
               <div className="absolute right-0 mt-2 w-44 rounded-lg border border-line bg-surface p-2 shadow-lg">
                 {navLinks.map((link) =>
@@ -132,6 +147,7 @@ export default function Home() {
               <span className="sm:hidden">Try</span>
               <span className="hidden sm:inline">Try the assistant</span>
             </Link>
+            <ThemeToggle />
           </div>
         </div>
       </header>
@@ -147,13 +163,13 @@ export default function Home() {
                 className="enter-up text-sm font-medium text-accent"
                 style={{ animationDelay: "40ms" }}
               >
-                Your business, in your voice.
+                Your business, guided by voice.
               </p>
               <h1
                 className="enter-up mt-4 max-w-xl text-[2.35rem] font-semibold leading-[1.08] tracking-tight sm:text-5xl lg:text-[3.4rem]"
                 style={{ animationDelay: "90ms" }}
               >
-                Run your business by voice.
+                Meet Meri, your business guide.
               </h1>
               <p
                 className="enter-up mt-6 max-w-lg text-base leading-7 text-muted sm:text-[17px]"
@@ -191,7 +207,7 @@ export default function Home() {
           className="scroll-mt-16 border-t border-line"
         >
           <div className="mx-auto max-w-6xl px-5 py-16 sm:px-8 sm:py-20">
-            <p className="text-sm font-medium text-accent">How it works</p>
+            <p className="text-sm font-medium text-accent">How Meri works</p>
             <h2 className="mt-3 max-w-xl text-3xl font-semibold tracking-tight">
               Speak. Record. Understand. Decide.
             </h2>
@@ -216,7 +232,7 @@ export default function Home() {
 
         <section className="border-t border-line">
           <div className="mx-auto max-w-6xl px-5 py-16 sm:px-8 sm:py-20">
-            <p className="text-sm font-medium text-accent">Capabilities</p>
+            <p className="text-sm font-medium text-accent">Built for daily operations</p>
             <h2 className="mt-3 max-w-xl text-3xl font-semibold tracking-tight">
               Everyday operations, without the forms.
             </h2>
@@ -239,7 +255,7 @@ export default function Home() {
         <section className="border-t border-line">
           <div className="mx-auto max-w-6xl px-5 py-16 text-center sm:px-8 sm:py-20">
             <h2 className="text-3xl font-semibold tracking-tight">
-              Run your business by voice.
+              Keep moving with Meri.
             </h2>
             <p className="mx-auto mt-4 max-w-xl text-base leading-7 text-muted">
               Capture what happens in the shop, keep a live view of the
@@ -266,7 +282,7 @@ export default function Home() {
       <footer className="border-t border-line">
         <div className="mx-auto flex max-w-6xl flex-col gap-6 px-5 py-8 sm:flex-row sm:items-center sm:justify-between sm:px-8">
           <div>
-            <p className="text-sm font-medium">Voice-First Business Assistant</p>
+            <p className="text-sm font-medium">Meri</p>
             <p className="mt-1 text-sm text-muted">
               Run your business by voice.
             </p>
