@@ -9,8 +9,9 @@
  *   3. The voice assistant is available on every page (landing, assistant, etc.)
  *
  * The widget receives the pre-configured `ai` client from `@/lib/voxide/client`
- * when `NEXT_PUBLIC_VOXIDE_PUBLIC_KEY` is set. Without that key it renders
- * nothing, and the rest of the app keeps working.
+ * when `NEXT_PUBLIC_VOXIDE_PUBLIC_KEY` is set and
+ * `NEXT_PUBLIC_VOXIDE_ENABLED=true`. Otherwise it renders nothing, and the
+ * rest of the app keeps working without initializing a voice session.
  *
  * No extra props are passed to VoxideWidget (no `theme`, `accentColor`, `position`,
  * etc.) so that all appearance settings are controlled from the Voxide dashboard.

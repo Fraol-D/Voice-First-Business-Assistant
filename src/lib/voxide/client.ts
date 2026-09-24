@@ -21,7 +21,11 @@
 import { VoxideClient, type VoxideAction } from "@voxide/react";
 import { createEvent, queryBusiness } from "@/lib/api/client";
 import type { EventType } from "@/lib/api/types";
-import { MVP_BUSINESS_ID, DEFAULT_LANGUAGE } from "@/lib/config";
+import {
+  MVP_BUSINESS_ID,
+  DEFAULT_LANGUAGE,
+  VOXIDE_ENABLED,
+} from "@/lib/config";
 
 // ---------------------------------------------------------------------------
 // Client initialisation
@@ -37,7 +41,9 @@ const publicKey = process.env.NEXT_PUBLIC_VOXIDE_PUBLIC_KEY?.trim();
  * Shared client when a real key is configured. Null leaves voice disabled.
  */
 export const ai: VoxideClient | null = publicKey
-  ? new VoxideClient({ publicKey })
+  ? VOXIDE_ENABLED
+    ? new VoxideClient({ publicKey })
+    : null
   : null;
 
 /** Same currency choices as the event form. Omitted voice currency uses ETB. */

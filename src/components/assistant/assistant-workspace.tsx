@@ -50,6 +50,13 @@ const eventLabels: Record<EventType, string> = {
   customer_debt: "Customer debt",
 };
 
+const queryExamples = [
+  "How many shirts do I have?",
+  "How much did I sell today?",
+  "How much did I spend this week?",
+  "Who owes me?",
+] as const;
+
 export function AssistantWorkspace() {
   const [health, setHealth] = useState<"checking" | "ok" | "down">("checking");
   const [queryText, setQueryText] = useState("");
@@ -274,17 +281,17 @@ export function AssistantWorkspace() {
   }
 
   return (
-    <div className="mx-auto flex w-full max-w-6xl flex-col gap-8 px-5 py-10 sm:px-8">
-      <div className="flex flex-wrap items-start justify-between gap-4">
+    <div className="mx-auto flex w-full max-w-6xl flex-col gap-7 px-4 py-7 sm:px-8 sm:py-10">
+      <div className="flex flex-wrap items-end justify-between gap-5">
         <div>
-          <p className="text-sm font-medium text-accent">Text workflow</p>
-          <h1 className="mt-2 text-3xl font-semibold tracking-tight">
-            Ask and record
+          <p className="text-sm font-medium text-accent">Meri workspace</p>
+          <h1 className="mt-2 text-3xl font-semibold tracking-tight sm:text-4xl">
+            Your business, guided by voice.
           </h1>
           <p className="mt-3 max-w-2xl text-sm leading-6 text-muted">
-            Questions go to the backend as natural language. Recording an event
-            uses the structured API contract — this page does not calculate
-            totals, stock, or debts.
+            Ask a question in plain language, or record what happened today.
+            Voxide is ready when you want to speak; text stays available here
+            whenever you need a reliable fallback.
           </p>
         </div>
         <p
@@ -307,12 +314,27 @@ export function AssistantWorkspace() {
       <div className="grid gap-6 lg:grid-cols-2">
         <form
           onSubmit={onQuery}
-          className="rounded-xl border border-line bg-surface p-5 sm:p-6"
+          className="rounded-2xl border border-accent/35 bg-surface p-5 shadow-[0_12px_30px_rgba(0,0,0,0.12)] sm:p-6"
         >
-          <h2 className="text-base font-medium">Ask the business</h2>
-          <p className="mt-1 text-sm text-muted">
-            Sent to <code className="text-foreground">POST /api/v1/query</code>
+          <p className="text-xs font-medium uppercase tracking-[0.16em] text-accent">
+            Text fallback
           </p>
+          <h2 className="mt-2 text-xl font-semibold">Ask your business</h2>
+          <p className="mt-1 text-sm text-muted">
+            Get an answer from the business data you have already recorded.
+          </p>
+          <div className="mt-4 flex flex-wrap gap-2" aria-label="Example questions">
+            {queryExamples.map((example) => (
+              <button
+                key={example}
+                type="button"
+                onClick={() => setQueryText(example)}
+                className="rounded-full border border-line px-3 py-2 text-left text-xs text-muted transition-colors hover:border-accent/60 hover:text-foreground"
+              >
+                {example}
+              </button>
+            ))}
+          </div>
           <label className="mt-4 block text-sm text-muted" htmlFor="query">
             Question
           </label>
@@ -321,13 +343,13 @@ export function AssistantWorkspace() {
             value={queryText}
             onChange={(event) => setQueryText(event.target.value)}
             rows={4}
-            placeholder="How many shirts do I have left?"
-            className="mt-2 min-h-28 w-full resize-y rounded-md border border-line bg-background px-3 py-3 text-base text-foreground outline-none focus:border-accent focus:ring-2 focus:ring-accent/30 sm:text-sm"
+            placeholder="Try a question about sales, stock, or money owed"
+            className="mt-3 min-h-28 w-full resize-y rounded-xl border border-line bg-background px-3 py-3 text-base text-foreground outline-none transition-colors placeholder:text-faint focus:border-accent focus:ring-2 focus:ring-accent/30 sm:text-sm"
           />
           <button
             type="submit"
             disabled={busy}
-            className="mt-4 min-h-11 w-full rounded-md bg-accent px-4 py-2 text-sm font-medium text-background transition-opacity hover:opacity-90 disabled:opacity-50 sm:w-auto"
+            className="mt-4 min-h-11 w-full rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-background transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"
           >
             {response.kind === "loading" && response.action === "query"
               ? "Asking…"
@@ -337,11 +359,14 @@ export function AssistantWorkspace() {
 
         <form
           onSubmit={onRecordEvent}
-          className="rounded-xl border border-line bg-surface p-5 sm:p-6"
+          className="rounded-2xl border border-line bg-surface p-5 sm:p-6"
         >
-          <h2 className="text-base font-medium">Record an event</h2>
+          <p className="text-xs font-medium uppercase tracking-[0.16em] text-accent">
+            Structured record
+          </p>
+          <h2 className="mt-2 text-xl font-semibold">Record what happened</h2>
           <p className="mt-1 text-sm text-muted">
-            Sent to <code className="text-foreground">POST /api/v1/events</code>
+            Keep sales, expenses, purchases, stock, and customer balances current.
           </p>
 
           <label className="mt-4 block text-sm text-muted" htmlFor="event-type">
@@ -474,7 +499,7 @@ export function AssistantWorkspace() {
           <button
             type="submit"
             disabled={busy}
-            className="mt-4 min-h-11 w-full rounded-md bg-accent px-4 py-2 text-sm font-medium text-background transition-opacity hover:opacity-90 disabled:opacity-50 sm:w-auto"
+            className="mt-4 min-h-11 w-full rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-background transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"
           >
             {response.kind === "loading" && response.action === "event"
               ? "Recording…"
@@ -483,20 +508,30 @@ export function AssistantWorkspace() {
         </form>
       </div>
 
-      <section className="rounded-xl border border-line bg-surface p-5">
-        <h2 className="text-base font-medium">Backend response</h2>
+      <section className="rounded-2xl border border-line bg-surface p-5 sm:p-6" aria-live="polite">
+        <div className="flex items-center justify-between gap-3">
+          <div>
+            <p className="text-xs font-medium uppercase tracking-[0.16em] text-faint">
+              Activity
+            </p>
+            <h2 className="mt-2 text-lg font-semibold">Your latest update</h2>
+          </div>
+          <span className="hidden rounded-full border border-line px-2.5 py-1 text-xs text-faint sm:inline">
+            Meri text workflow
+          </span>
+        </div>
         {response.kind === "idle" && (
-          <p className="mt-2 text-sm text-muted">
-            Submit a question or an event to see the backend result here.
+          <p className="mt-4 rounded-xl border border-dashed border-line bg-background/40 p-4 text-sm text-muted">
+            Your answer or confirmation will appear here after you ask or record something.
           </p>
         )}
         {response.kind === "loading" && (
-          <p className="mt-2 text-sm text-muted">
-            Waiting for the business service…
+          <p className="mt-4 rounded-xl border border-dashed border-line bg-background/40 p-4 text-sm text-muted">
+            Working with your business data…
           </p>
         )}
         {response.kind === "success" && (
-          <div className="mt-2 space-y-2">
+          <div className="mt-4 space-y-3 rounded-xl border border-positive/25 bg-positive/10 p-4">
             <p className="text-xs uppercase tracking-wide text-positive">
               {response.title}
             </p>
@@ -509,7 +544,7 @@ export function AssistantWorkspace() {
           </div>
         )}
         {response.kind === "issue" && (
-          <div className="mt-2 space-y-2">
+          <div className="mt-4 space-y-3 rounded-xl border border-attention/30 bg-attention/10 p-4">
             <p
               className={`text-xs uppercase tracking-wide ${
                 response.tone === "clarification"
