@@ -76,7 +76,7 @@ Voice → Validated Business Event → Business State → Analysis → Decision
 
 ## Development Workflow
 
-The `main` branch is protected. Work happens on feature branches, and changes are submitted through pull requests. At least one experienced developer reviews each pull request before it is merged. The experienced developers for this project are **Fraol, Brooke, and Ali**.
+The `main` branch is protected. Work happens on feature branches, and changes are submitted through pull requests. At least one experienced developer reviews each pull request before it is merged.
 
 ## Planned Architecture Principle
 
