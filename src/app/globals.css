@@ -1,23 +1,24 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap');
 @import "tailwindcss";
 
 :root {
   color-scheme: dark;
-  --background: #111111;
+  --background: #0a0a0a;
   --foreground: #ffffff;
-  --surface: #181818;
-  --surface-subtle: #151515;
-  --surface-strong: #222222;
-  --muted: #a3a3a3;
+  --surface: #141414;
+  --surface-subtle: #101010;
+  --surface-strong: #181818;
+  --muted: #8e8e93;
   --faint: #737373;
-  --border: #2a2a2a;
-  --border-strong: #404040;
+  --border: #262626;
+  --border-strong: #383838;
   --primary: #ffffff;
-  --primary-foreground: #111111;
-  --accent: #ffffff;
-  --accent-foreground: #111111;
-  --success: #a3a3a3;
-  --warning: #a3a3a3;
-  --error: #d4d4d4;
+  --primary-foreground: #0a0a0a;
+  --accent: #fe6904;
+  --accent-foreground: #ffffff;
+  --success: #16a34a;
+  --warning: #ca8a04;
+  --error: #dc2626;
   --surface-2: var(--surface-strong);
   --line: var(--border);
   --accent-dim: color-mix(in srgb, var(--accent) 14%, transparent);
@@ -28,24 +29,27 @@
   --negative: var(--error);
 }
 
-:root[data-theme="light"] {
+:root[data-theme="light"],
+:root.light,
+html[data-theme="light"],
+html.light {
   color-scheme: light;
-  --background: #ffffff;
-  --foreground: #111111;
-  --surface: #f7f7f7;
-  --surface-subtle: #fafafa;
-  --surface-strong: #eeeeee;
-  --muted: #6b6b6b;
-  --faint: #8a8a8a;
-  --border: #e5e5e5;
-  --border-strong: #d4d4d4;
-  --primary: #111111;
+  --background: #f8f9fa;
+  --foreground: #111827;
+  --surface: #f0f2f5;
+  --surface-subtle: #ffffff;
+  --surface-strong: #e5e7eb;
+  --muted: #4b5563;
+  --faint: #9ca3af;
+  --border: #e5e7eb;
+  --border-strong: #d1d5db;
+  --primary: #111827;
   --primary-foreground: #ffffff;
-  --accent: #111111;
+  --accent: #fe6904;
   --accent-foreground: #ffffff;
-  --success: #525252;
-  --warning: #6b6b6b;
-  --error: #333333;
+  --success: #16a34a;
+  --warning: #ca8a04;
+  --error: #dc2626;
   --surface-2: var(--surface-strong);
   --line: var(--border);
   --accent-dim: color-mix(in srgb, var(--accent) 10%, transparent);
@@ -118,7 +122,7 @@ select {
 
 button:focus-visible,
 a:focus-visible,
-input:focus-visible,
+input:not(#chat-input):focus-visible,
 textarea:focus-visible,
 select:focus-visible,
 summary:focus-visible {
@@ -190,7 +194,205 @@ summary::-webkit-details-marker {
 
   .enter-up,
   .wave-bar,
-  .voice-pulse {
+  .voice-pulse,
+  .orb-breathe-animation {
     animation: none;
   }
 }
+
+/* Typography Utility Classes */
+.font-space {
+  font-family: 'Space Grotesk', var(--font-space), ui-sans-serif, system-ui, sans-serif;
+}
+
+.font-inter {
+  font-family: 'Inter', var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+}
+
+/* Voice Orb Glowing Breathing Circle (3–6s pulse) */
+@keyframes orb-breathe {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 
+      0 0 25px 2px rgba(254, 105, 4, 0.12),
+      0 0 50px 10px rgba(254, 105, 4, 0.05),
+      inset 0 0 20px rgba(254, 105, 4, 0.08);
+    border-color: rgba(254, 105, 4, 0.25);
+  }
+  50% {
+    transform: scale(1.04);
+    box-shadow: 
+      0 0 38px 6px rgba(254, 105, 4, 0.22),
+      0 0 75px 18px rgba(254, 105, 4, 0.10),
+      inset 0 0 30px rgba(254, 105, 4, 0.16);
+    border-color: rgba(254, 105, 4, 0.45);
+  }
+}
+
+.orb-breathe-animation {
+  animation: orb-breathe 4s ease-in-out infinite;
+}
+
+/* Structured Result Cards (§20–§21, §23–§24) */
+.assistant-card {
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 1.125rem 1.25rem;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+}
+
+.assistant-card:hover {
+  border-color: var(--border-strong);
+}
+
+.assistant-card-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  border-radius: 9999px;
+  padding: 0.25rem 0.625rem;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.badge-sale {
+  background-color: rgba(254, 105, 4, 0.12);
+  color: #fe6904;
+  border: 1px solid rgba(254, 105, 4, 0.3);
+}
+
+.badge-expense {
+  background-color: var(--surface-strong);
+  color: var(--foreground);
+  border: 1px solid var(--border);
+}
+
+.badge-inventory {
+  background-color: var(--surface-strong);
+  color: var(--foreground);
+  border: 1px solid var(--border);
+}
+
+.badge-clarification {
+  background-color: rgba(254, 105, 4, 0.12);
+  color: #fe6904;
+  border: 1px solid rgba(254, 105, 4, 0.3);
+}
+
+.card-amount {
+  font-family: 'Space Grotesk', var(--font-space), ui-sans-serif, system-ui, sans-serif;
+  font-weight: 700;
+  font-size: 1.375rem;
+  line-height: 1.25;
+  color: var(--foreground);
+  letter-spacing: -0.02em;
+}
+
+@media (min-width: 640px) {
+  .card-amount {
+    font-size: 1.5rem;
+  }
+}
+
+.card-timestamp {
+  font-family: 'Inter', var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  font-size: 0.75rem;
+  color: var(--muted);
+}
+
+.card-option-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+  padding: 0.5rem 1.125rem;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  background-color: var(--surface-subtle);
+  border: 1px solid var(--border);
+  color: var(--foreground);
+  transition: all 0.2s ease;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.card-option-btn:hover {
+  background-color: var(--surface-strong);
+  border-color: var(--accent);
+  box-shadow: 0 0 12px rgba(254, 105, 4, 0.25);
+}
+
+/* User Bubble in Feed */
+.user-feed-bubble {
+  border-radius: 16px;
+  border-top-right-radius: 4px;
+  background-color: var(--surface-strong);
+  border: 1px solid var(--border);
+  padding: 0.625rem 1rem;
+  font-size: 0.875rem;
+  color: var(--foreground);
+  font-family: 'Inter', var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  word-break: break-word;
+}
+
+/* Scrollbar styling */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 5px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 9999px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: var(--border-strong);
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Unified Pill Text Input Form (§18, §29) */
+#chat-form {
+  border-radius: 9999px !important;
+  background-color: var(--surface) !important;
+  border: 1px solid var(--border) !important;
+  padding: 6px 8px 6px 18px !important;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease !important;
+}
+
+#chat-form:focus-within {
+  border-color: #FE6904 !important;
+  box-shadow: 0 0 12px rgba(254, 105, 4, 0.15) !important;
+  outline: none !important;
+}
+
+#chat-form input,
+#chat-input {
+  border: none !important;
+  outline: none !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  -webkit-appearance: none !important;
+  appearance: none !important;
+}
+
+#chat-form input:focus,
+#chat-form input:focus-visible,
+#chat-input:focus,
+#chat-input:focus-visible {
+  border: none !important;
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+
