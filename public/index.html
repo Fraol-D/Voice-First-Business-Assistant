@@ -1,0 +1,914 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Meri — Voice-First Business Assistant</title>
+  <meta name="description" content="Speak your sales. Know your numbers. Record transactions, track inventory, and get real-time business clarity in plain language.">
+
+  <!-- Google Fonts: Space Grotesk & Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+
+  <!-- Synchronous Zero-Flash Theme Script (Checks localStorage) -->
+  <script>
+    (function () {
+      try {
+        var saved = localStorage.getItem('theme') || localStorage.getItem('meri-theme');
+        var theme = saved || (window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
+        document.documentElement.setAttribute('data-theme', theme);
+        document.documentElement.classList.remove('dark', 'light');
+        document.documentElement.classList.add(theme);
+      } catch (e) {}
+    })();
+  </script>
+
+  <style>
+    :root {
+      --background: #0A0A0A;
+      --foreground: #FFFFFF;
+      --surface: #141414;
+      --surface-card: #161616;
+      --surface-subtle: #111111;
+      --surface-strong: #1E1E1E;
+      --border: #262626;
+      --border-strong: #383838;
+      --muted: #8E8E93;
+      --muted-light: #A1A1AA;
+      --accent: #FE6904;
+      --accent-glow: rgba(254, 105, 4, 0.25);
+      --accent-dim: rgba(254, 105, 4, 0.12);
+      --header-bg: rgba(10, 10, 10, 0.82);
+    }
+
+    [data-theme="light"], .light {
+      --background: #F8F9FA;
+      --foreground: #111827;
+      --surface: #F0F2F5;
+      --surface-card: #FFFFFF;
+      --surface-subtle: #FFFFFF;
+      --surface-strong: #E5E7EB;
+      --border: #E5E7EB;
+      --border-strong: #D1D5DB;
+      --muted: #4B5563;
+      --muted-light: #6B7280;
+      --accent: #FE6904;
+      --accent-glow: rgba(254, 105, 4, 0.18);
+      --accent-dim: rgba(254, 105, 4, 0.10);
+      --header-bg: rgba(248, 249, 250, 0.85);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--background);
+      color: var(--foreground);
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      min-height: 100vh;
+      line-height: 1.6;
+      transition: background-color 0.2s ease, color 0.2s ease;
+      overflow-x: hidden;
+    }
+
+    h1, h2, h3, h4, .font-space {
+      font-family: 'Space Grotesk', -apple-system, BlinkMacSystemFont, sans-serif;
+      letter-spacing: -0.025em;
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 1.5rem;
+    }
+
+    /* Fixed / Sticky Header (§16) */
+    header.site-header {
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      background-color: var(--header-bg);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+      transition: border-color 0.2s ease, background-color 0.2s ease;
+    }
+
+    .header-inner {
+      height: 64px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+    }
+
+    .brand-logo {
+      display: flex;
+      align-items: center;
+      gap: 0.625rem;
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: var(--foreground);
+    }
+
+    .logo-mark {
+      width: 28px;
+      height: 28px;
+      border-radius: 8px;
+      background-color: var(--surface);
+      border: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--accent);
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 0.875rem;
+    }
+
+    .theme-toggle-btn {
+      width: 40px;
+      height: 40px;
+      border-radius: 9999px;
+      border: 1px solid var(--border);
+      background-color: var(--surface);
+      color: var(--muted);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .theme-toggle-btn:hover {
+      border-color: var(--accent);
+      color: var(--foreground);
+    }
+
+    .pill-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      border-radius: 9999px;
+      padding: 0.625rem 1.25rem;
+      font-size: 0.875rem;
+      font-weight: 600;
+      transition: all 0.2s ease;
+      cursor: pointer;
+      border: 1px solid var(--border);
+      background-color: var(--surface);
+      color: var(--foreground);
+    }
+
+    .pill-btn:hover {
+      border-color: var(--accent);
+      box-shadow: 0 0 16px var(--accent-glow);
+    }
+
+    .pill-btn.primary {
+      background-color: var(--foreground);
+      color: var(--background);
+      border-color: transparent;
+    }
+
+    .pill-btn.primary:hover {
+      opacity: 0.9;
+      box-shadow: 0 0 20px rgba(254, 105, 4, 0.35);
+      border-color: var(--accent);
+    }
+
+    /* Hero Section (§11 & §16) */
+    .hero-section {
+      padding: 5rem 0 3.5rem;
+      text-align: center;
+    }
+
+    .hero-badge-container {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 1.5rem;
+    }
+
+    .hero-pill-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.375rem 1rem;
+      border-radius: 9999px;
+      background-color: var(--surface);
+      border: 1px solid var(--border);
+      font-size: 0.8125rem;
+      font-weight: 500;
+      color: var(--muted-light);
+    }
+
+    .status-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 9999px;
+      background-color: var(--accent);
+      box-shadow: 0 0 8px var(--accent);
+      animation: pulse 2.5s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.5; transform: scale(0.85); }
+    }
+
+    .hero-headline {
+      font-size: clamp(2.5rem, 5.5vw, 4.25rem);
+      font-weight: 700;
+      line-height: 1.08;
+      max-width: 860px;
+      margin: 0 auto 1.5rem;
+      color: var(--foreground);
+    }
+
+    .hero-subtitle {
+      font-size: clamp(1rem, 2vw, 1.25rem);
+      color: var(--muted);
+      max-width: 680px;
+      margin: 0 auto 2.5rem;
+      line-height: 1.65;
+    }
+
+    .hero-cta-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.625rem;
+      border-radius: 9999px;
+      padding: 0.875rem 2.25rem;
+      font-size: 1rem;
+      font-weight: 600;
+      background-color: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--foreground);
+      transition: all 0.25s ease;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+    }
+
+    .hero-cta-btn:hover {
+      border-color: var(--accent);
+      box-shadow: 0 0 24px var(--accent-glow);
+      transform: translateY(-2px);
+    }
+
+    /* Product Visualization Mockup (§17) */
+    .mockup-section {
+      padding: 1rem 0 5rem;
+    }
+
+    .mockup-container {
+      max-width: 760px;
+      margin: 0 auto;
+      background-color: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 2.25rem 2rem;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.35);
+      position: relative;
+    }
+
+    .mockup-tag {
+      font-size: 0.6875rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+      font-weight: 600;
+      margin-bottom: 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .mockup-tag::before {
+      content: "";
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--accent);
+    }
+
+    .mockup-flow {
+      display: flex;
+      flex-direction: column;
+      gap: 1.25rem;
+    }
+
+    /* Speech Bubble */
+    .speech-bubble {
+      align-self: flex-start;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.75rem;
+      background-color: var(--surface-strong);
+      border: 1px solid var(--border);
+      padding: 0.875rem 1.25rem;
+      border-radius: 18px;
+      border-bottom-left-radius: 4px;
+      font-size: 0.9375rem;
+      color: var(--foreground);
+      max-width: 90%;
+    }
+
+    .mic-icon-pill {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 28px;
+      height: 28px;
+      border-radius: 9999px;
+      background-color: var(--accent-dim);
+      color: var(--accent);
+      flex-shrink: 0;
+    }
+
+    .flow-connector {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.75rem;
+      color: var(--muted);
+      padding-left: 0.5rem;
+    }
+
+    .flow-line {
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+      max-width: 60px;
+    }
+
+    /* Formatted Outcome Card */
+    .outcome-card {
+      background-color: var(--surface-card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 1.25rem 1.5rem;
+      transition: all 0.2s ease;
+    }
+
+    .outcome-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 0.75rem;
+    }
+
+    .outcome-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.375rem;
+      border-radius: 9999px;
+      padding: 0.25rem 0.625rem;
+      font-size: 0.6875rem;
+      font-weight: 600;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      background-color: var(--accent-dim);
+      color: var(--accent);
+      border: 1px solid rgba(254, 105, 4, 0.3);
+    }
+
+    .outcome-badge .dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--accent);
+    }
+
+    .outcome-timestamp {
+      font-size: 0.75rem;
+      color: var(--muted);
+    }
+
+    .outcome-metric {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 1.75rem;
+      font-weight: 700;
+      color: var(--foreground);
+      line-height: 1.2;
+    }
+
+    .outcome-detail {
+      font-size: 0.875rem;
+      color: var(--muted-light);
+      margin-top: 0.25rem;
+    }
+
+    /* Inventory Delta Indicator */
+    .inventory-pill {
+      align-self: flex-start;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      background-color: var(--surface-subtle);
+      border: 1px solid var(--border);
+      border-radius: 9999px;
+      padding: 0.375rem 0.875rem;
+      font-size: 0.75rem;
+      color: var(--muted);
+      font-weight: 500;
+    }
+
+    .inventory-pill strong {
+      color: var(--foreground);
+    }
+
+    /* Value Pillars / How it works (§16) */
+    .pillars-section {
+      padding: 4.5rem 0;
+      border-top: 1px solid var(--border);
+    }
+
+    .section-header {
+      text-align: center;
+      margin-bottom: 3.5rem;
+    }
+
+    .section-eyebrow {
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--accent);
+      margin-bottom: 0.625rem;
+    }
+
+    .section-title {
+      font-size: clamp(1.875rem, 3.5vw, 2.5rem);
+      font-weight: 700;
+      color: var(--foreground);
+    }
+
+    .pillars-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1.5rem;
+    }
+
+    .pillar-card {
+      background-color: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 2rem 1.75rem;
+      transition: all 0.25s ease;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .pillar-card:hover {
+      border-color: var(--border-strong);
+      transform: translateY(-3px);
+    }
+
+    .pillar-icon-box {
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
+      background-color: var(--surface-strong);
+      border: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--accent);
+    }
+
+    .pillar-title {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 1.25rem;
+      font-weight: 600;
+      color: var(--foreground);
+    }
+
+    .pillar-desc {
+      font-size: 0.9375rem;
+      color: var(--muted);
+      line-height: 1.6;
+    }
+
+    /* Trust & Anti-Patterns Section (§33) */
+    .trust-section {
+      padding: 4.5rem 0;
+      border-top: 1px solid var(--border);
+    }
+
+    .trust-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1.5rem;
+    }
+
+    .trust-card {
+      background-color: var(--surface-card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 1.75rem 1.5rem;
+    }
+
+    .trust-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.375rem;
+      font-size: 0.6875rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--accent);
+      margin-bottom: 0.75rem;
+    }
+
+    .trust-title {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 1.125rem;
+      font-weight: 600;
+      color: var(--foreground);
+      margin-bottom: 0.5rem;
+    }
+
+    .trust-desc {
+      font-size: 0.875rem;
+      color: var(--muted);
+      line-height: 1.55;
+    }
+
+    /* Footer & Final CTA */
+    .cta-banner-section {
+      padding: 5rem 0 3.5rem;
+      border-top: 1px solid var(--border);
+    }
+
+    .cta-banner-box {
+      background-color: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 3.5rem 2rem;
+      text-align: center;
+      max-width: 840px;
+      margin: 0 auto;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+    }
+
+    .cta-banner-title {
+      font-size: clamp(1.75rem, 3.5vw, 2.5rem);
+      font-weight: 700;
+      color: var(--foreground);
+      margin-bottom: 1rem;
+    }
+
+    .cta-banner-desc {
+      font-size: 1rem;
+      color: var(--muted);
+      max-width: 520px;
+      margin: 0 auto 2rem;
+    }
+
+    footer.site-footer {
+      border-top: 1px solid var(--border);
+      padding: 2.5rem 0;
+      text-align: center;
+      font-size: 0.8125rem;
+      color: var(--muted);
+    }
+
+    .footer-inner {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    /* Responsive */
+    @media (max-width: 900px) {
+      .pillars-grid, .trust-grid {
+        grid-template-columns: 1fr;
+      }
+      .mockup-container {
+        padding: 1.5rem 1.25rem;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- 1. Header (§16) -->
+  <header class="site-header">
+    <div class="container">
+      <div class="header-inner">
+        <!-- Logo / Brand -->
+        <a href="index.html" class="brand-logo" aria-label="Meri Home">
+          <div class="logo-mark" aria-hidden="true">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/>
+              <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+              <line x1="12" y1="19" x2="12" y2="22"/>
+            </svg>
+          </div>
+          <span>Meri</span>
+        </a>
+
+        <!-- Header Actions: Theme Toggle & Open Assistant CTA -->
+        <div class="header-actions">
+          <button
+            id="theme-toggle"
+            class="theme-toggle-btn"
+            type="button"
+            onclick="toggleTheme()"
+            aria-label="Toggle dark/light theme"
+            title="Toggle theme"
+          >
+            <!-- Sun Icon (for dark mode) -->
+            <svg class="sun-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+              <circle cx="12" cy="12" r="4"/>
+              <path d="M12 2v2M12 20v2M4.93 4.93l1.42 1.42M17.65 17.65l1.42 1.42M2 12h2M20 12h2M4.93 19.07l1.42-1.42M17.65 6.35l1.42-1.42"/>
+            </svg>
+            <!-- Moon Icon (for light mode) -->
+            <svg class="moon-icon" style="display: none;" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M20.5 15.3A8.5 8.5 0 0 1 8.7 3.5 8.5 8.5 0 1 0 20.5 15.3Z"/>
+            </svg>
+          </button>
+
+          <a href="assistant.html" class="pill-btn">
+            Open Assistant
+          </a>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <!-- 2. Hero Section (§11 & §16) -->
+    <section class="hero-section">
+      <div class="container">
+        <!-- Top Pill Badge -->
+        <div class="hero-badge-container">
+          <div class="hero-pill-badge">
+            <span class="status-dot" aria-hidden="true"></span>
+            <span>Voice-First Business Assistant</span>
+          </div>
+        </div>
+
+        <!-- Headline -->
+        <h1 class="hero-headline">
+          Speak your sales.<br>Know your numbers.
+        </h1>
+
+        <!-- Subtitle -->
+        <p class="hero-subtitle">
+          Record transactions, track inventory, and get real-time business clarity in plain language. Built for daily hustle, zero spreadsheet friction.
+        </p>
+
+        <!-- Large Pill CTA -->
+        <div>
+          <a href="assistant.html" class="hero-cta-btn">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#FE6904" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/>
+              <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+              <line x1="12" y1="19" x2="12" y2="22"/>
+            </svg>
+            <span>Start Speaking</span>
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <!-- 3. Interactive Product Visualization Mockup (§17) -->
+    <section class="mockup-section">
+      <div class="container">
+        <div class="mockup-container">
+          <div class="mockup-tag">
+            Live MVP Transformation
+          </div>
+
+          <div class="mockup-flow">
+            <!-- a) Speech Bubble -->
+            <div class="speech-bubble">
+              <span class="mic-icon-pill" aria-hidden="true">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/>
+                  <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+                  <line x1="12" y1="19" x2="12" y2="22"/>
+                </svg>
+              </span>
+              <span>&ldquo;I sold three shirts for 900 birr.&rdquo;</span>
+            </div>
+
+            <!-- Flow transition connector -->
+            <div class="flow-connector">
+              <div class="flow-line"></div>
+              <span>Meri records automatically</span>
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
+            </div>
+
+            <!-- b) Formatted Outcome Card -->
+            <div class="outcome-card">
+              <div class="outcome-header">
+                <span class="outcome-badge">
+                  <span class="dot"></span>
+                  Sale Recorded
+                </span>
+                <span class="outcome-timestamp">Just now</span>
+              </div>
+              <div class="outcome-metric">ETB 900</div>
+              <div class="outcome-detail">3 shirts &middot; Cash sale</div>
+            </div>
+
+            <!-- c) Inventory Delta Indicator -->
+            <div class="inventory-pill">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#FE6904" stroke-width="2" stroke-linecap="round"><path d="M20 6L9 17l-5-5"/></svg>
+              <span><strong>-3 shirts</strong> updated in inventory</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 4. How It Works / Value Pillars (§16) -->
+    <section class="pillars-section">
+      <div class="container">
+        <div class="section-header">
+          <div class="section-eyebrow">Engineered For Clarity</div>
+          <h2 class="section-title">How Meri Works</h2>
+        </div>
+
+        <div class="pillars-grid">
+          <!-- Pillar 1 -->
+          <div class="pillar-card">
+            <div class="pillar-icon-box" aria-hidden="true">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/>
+                <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+                <line x1="12" y1="19" x2="12" y2="22"/>
+              </svg>
+            </div>
+            <h3 class="pillar-title">Speak Naturally</h3>
+            <p class="pillar-desc">
+              Speak sales, expenses, and customer credit in everyday language without clicking through complex nested menus.
+            </p>
+          </div>
+
+          <!-- Pillar 2 -->
+          <div class="pillar-card">
+            <div class="pillar-icon-box" aria-hidden="true">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                <polyline points="14 2 14 8 20 8"/>
+                <line x1="16" y1="13" x2="8" y2="13"/>
+                <line x1="16" y1="17" x2="8" y2="17"/>
+                <polyline points="10 9 9 9 8 9"/>
+              </svg>
+            </div>
+            <h3 class="pillar-title">Instant Structured Records</h3>
+            <p class="pillar-desc">
+              Raw spoken words are automatically turned into verified ledger entries, inventory deductions, and clean summaries.
+            </p>
+          </div>
+
+          <!-- Pillar 3 -->
+          <div class="pillar-card">
+            <div class="pillar-icon-box" aria-hidden="true">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="11" cy="11" r="8"/>
+                <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+              </svg>
+            </div>
+            <h3 class="pillar-title">Real-Time Clarity</h3>
+            <p class="pillar-desc">
+              Ask &ldquo;How much did I make today?&rdquo; or &ldquo;How many shirts left?&rdquo; and get immediate, plain-spoken answers.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 5. Trust & Transparency / Anti-Patterns Section (§33) -->
+    <section class="trust-section">
+      <div class="container">
+        <div class="section-header">
+          <div class="section-eyebrow">Trust & Transparency</div>
+          <h2 class="section-title">Built with Honesty. No Fake AI Magic.</h2>
+        </div>
+
+        <div class="trust-grid">
+          <!-- Trust Item 1 -->
+          <div class="trust-card">
+            <div class="trust-badge">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+              <span>Plain Presentation</span>
+            </div>
+            <h3 class="trust-title">No Raw JSON or Hidden Math</h3>
+            <p class="trust-desc">
+              No hidden calculations or raw developer JSON exposed. Every result is rendered as clean, human-readable business cards.
+            </p>
+          </div>
+
+          <!-- Trust Item 2 -->
+          <div class="trust-card">
+            <div class="trust-badge">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+              <span>Owner Control</span>
+            </div>
+            <h3 class="trust-title">Always Reviewable & Editable</h3>
+            <p class="trust-desc">
+              Every voice record can be reviewed, adjusted, or confirmed. You remain the master of your business records.
+            </p>
+          </div>
+
+          <!-- Trust Item 3 -->
+          <div class="trust-card">
+            <div class="trust-badge">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+              <span>Resilient</span>
+            </div>
+            <h3 class="trust-title">Offline & Local Resilience</h3>
+            <p class="trust-desc">
+              Designed for fast, low-bandwidth environments with manual fallbacks ready whenever you need them.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 6. Footer & Final CTA -->
+    <section class="cta-banner-section">
+      <div class="container">
+        <div class="cta-banner-box">
+          <h2 class="cta-banner-title">
+            Ready to run your business with your voice?
+          </h2>
+          <p class="cta-banner-desc">
+            Stop losing transactions to memory and scattered paper notebooks.
+          </p>
+          <a href="assistant.html" class="pill-btn primary" style="padding: 0.875rem 2.5rem; font-size: 1rem;">
+            Open Assistant
+          </a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <div class="footer-inner">
+        <div class="brand-logo" style="font-size: 1.125rem;">
+          Meri
+        </div>
+        <p>&copy; 2026 Meri — Voice-First Business Assistant. Run your business by voice.</p>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Theme Switching Script -->
+  <script>
+    function updateThemeIcons(theme) {
+      var sun = document.querySelector('.sun-icon');
+      var moon = document.querySelector('.moon-icon');
+      if (sun && moon) {
+        if (theme === 'light') {
+          sun.style.display = 'none';
+          moon.style.display = 'block';
+        } else {
+          sun.style.display = 'block';
+          moon.style.display = 'none';
+        }
+      }
+    }
+
+    function toggleTheme() {
+      var current = document.documentElement.getAttribute('data-theme') || 'dark';
+      var next = current === 'dark' ? 'light' : 'dark';
+      document.documentElement.setAttribute('data-theme', next);
+      document.documentElement.classList.remove('dark', 'light');
+      document.documentElement.classList.add(next);
+      try {
+        localStorage.setItem('theme', next);
+        localStorage.setItem('meri-theme', next);
+      } catch (e) {}
+      updateThemeIcons(next);
+    }
+
+    // Initialize icons on load
+    (function() {
+      var current = document.documentElement.getAttribute('data-theme') || 'dark';
+      updateThemeIcons(current);
+    })();
+  </script>
+</body>
+</html>
