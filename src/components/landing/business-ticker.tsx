@@ -1,17 +1,15 @@
 "use client";
 
-import { useEffect, useRef, useState, type CSSProperties, type RefObject } from "react";
+import { useEffect, useMemo, useRef, useState, type CSSProperties, type RefObject } from "react";
+import { useTranslation } from "@/lib/i18n";
 
-const operations = [
-  "SALES",
-  "EXPENSES",
-  "PURCHASES",
-  "INVENTORY",
-  "CUSTOMER DEBT",
-  "BUSINESS INSIGHTS",
-];
-
-function TickerRow({ sequenceRef }: { sequenceRef?: RefObject<HTMLDivElement | null> }) {
+function TickerRow({
+  sequenceRef,
+  operations,
+}: {
+  sequenceRef?: RefObject<HTMLDivElement | null>;
+  operations: string[];
+}) {
   return (
     <div
       ref={sequenceRef}
@@ -34,9 +32,22 @@ function TickerRow({ sequenceRef }: { sequenceRef?: RefObject<HTMLDivElement | n
 }
 
 export function BusinessTicker() {
+  const { t } = useTranslation();
   const sequenceRef = useRef<HTMLDivElement>(null);
   const [sequenceWidth, setSequenceWidth] = useState(0);
   const [copyCount, setCopyCount] = useState(2);
+
+  const operations = useMemo(
+    () => [
+      t("ticker.sales"),
+      t("ticker.expenses"),
+      t("ticker.purchases"),
+      t("ticker.inventory"),
+      t("ticker.customerDebt"),
+      t("ticker.businessInsights"),
+    ],
+    [t],
+  );
 
   useEffect(() => {
     const sequence = sequenceRef.current;
@@ -57,16 +68,20 @@ export function BusinessTicker() {
       observer.disconnect();
       window.removeEventListener("resize", updateCopies);
     };
-  }, []);
+  }, [operations]);
 
   return (
-    <div className="business-ticker border-y border-border bg-surface-subtle" aria-label="Meri business operations">
+    <div className="business-ticker border-y border-border bg-surface-subtle" aria-label={t("ticker.ariaLabel")}>
       <div
         className="business-ticker-track flex w-max py-4"
         style={{ "--ticker-distance": `-${sequenceWidth}px` } as CSSProperties}
       >
         {Array.from({ length: copyCount }, (_, index) => (
-          <TickerRow key={index} sequenceRef={index === 0 ? sequenceRef : undefined} />
+          <TickerRow
+            key={index}
+            sequenceRef={index === 0 ? sequenceRef : undefined}
+            operations={operations}
+          />
         ))}
       </div>
     </div>

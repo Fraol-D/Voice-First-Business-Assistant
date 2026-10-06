@@ -1,18 +1,24 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { LanguageSwitcher } from "@/components/language-switcher";
 import { MeriLogo } from "@/components/landing/meri-logo";
-
-const NAV_LINKS = [
-  { href: "#demo", label: "Demo" },
-  { href: "#capabilities", label: "Capabilities" },
-  { href: "/assistant", label: "Assistant", isRoute: true },
-];
+import { useTranslation } from "@/lib/i18n";
 
 export function Navbar() {
+  const { t } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
+
+  const navLinks = useMemo(
+    () => [
+      { href: "#demo", label: t("nav.demo") },
+      { href: "#capabilities", label: t("nav.capabilities") },
+      { href: "/assistant", label: t("nav.assistant"), isRoute: true },
+    ],
+    [t],
+  );
 
   // Lock body scroll when mobile menu is open
   useEffect(() => {
@@ -44,7 +50,7 @@ export function Navbar() {
           <Link
             href="/"
             className="flex items-center gap-1.5 rounded-sm py-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
-            aria-label="Meri homepage"
+            aria-label={t("nav.home")}
           >
             <MeriLogo />
           </Link>
@@ -53,9 +59,9 @@ export function Navbar() {
         {/* Zone 2: Center — Product, How it works, Assistant */}
         <nav
           className="hidden md:flex absolute left-1/2 -translate-x-1/2 items-center gap-8 text-[15px] font-medium text-foreground"
-          aria-label="Main navigation"
+          aria-label={t("nav.mainNavigation")}
         >
-          {NAV_LINKS.map((link) =>
+          {navLinks.map((link) =>
             link.isRoute ? (
               <Link
                 key={link.href}
@@ -78,14 +84,15 @@ export function Navbar() {
           )}
         </nav>
 
-        {/* Zone 3: Right — Flush right (ml-auto) flex group holding ThemeToggle then CTA */}
+        {/* Zone 3: Right — Flush right (ml-auto) flex group holding LanguageSwitcher, ThemeToggle, CTA */}
         <div className="hidden md:flex ml-auto items-center gap-2.5">
+          <LanguageSwitcher />
           <ThemeToggle />
           <Link
             href="/assistant"
             className="inline-flex items-center justify-center rounded-full bg-accent px-4 py-2 text-sm font-medium text-background shadow-sm shadow-accent/20 transition-all hover:-translate-y-0.5 hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
           >
-            Try Meri
+            {t("nav.tryMeri")}
           </Link>
         </div>
 
@@ -95,7 +102,7 @@ export function Navbar() {
             type="button"
             onClick={() => setIsOpen(true)}
             className="inline-flex size-10 items-center justify-center rounded-lg border border-border bg-surface text-foreground transition-all duration-200 hover:opacity-70 hover:border-border-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
-            aria-label="Open navigation menu"
+            aria-label={t("nav.openMenu")}
             aria-expanded={isOpen}
           >
             <svg
@@ -121,14 +128,14 @@ export function Navbar() {
           className="fixed inset-0 z-50 flex flex-col bg-background px-6 py-5 md:hidden animate-[enter-up_0.25s_ease-out_both]"
           role="dialog"
           aria-modal="true"
-          aria-label="Navigation menu"
+          aria-label={t("nav.mobileMenu")}
         >
           <div className="flex items-center justify-between border-b border-border pb-4">
             <Link
               href="/"
               onClick={() => setIsOpen(false)}
               className="flex items-center gap-1.5 rounded-sm py-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
-              aria-label="Meri homepage"
+              aria-label={t("nav.home")}
             >
               <MeriLogo />
             </Link>
@@ -137,7 +144,7 @@ export function Navbar() {
               type="button"
               onClick={() => setIsOpen(false)}
               className="inline-flex size-10 items-center justify-center rounded-lg border border-border bg-surface text-foreground transition-all duration-200 hover:opacity-70 hover:border-border-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
-              aria-label="Close navigation menu"
+              aria-label={t("nav.closeMenu")}
             >
               <svg
                 className="size-5"
@@ -155,7 +162,7 @@ export function Navbar() {
           </div>
 
           <nav className="mt-8 flex flex-col gap-6">
-            {NAV_LINKS.map((link) =>
+            {navLinks.map((link) =>
               link.isRoute ? (
                 <Link
                   key={link.href}
@@ -180,7 +187,11 @@ export function Navbar() {
 
           <div className="mt-auto border-t border-border pt-6 pb-4 flex flex-col gap-4">
             <div className="flex items-center justify-between">
-              <span className="text-sm font-medium text-foreground">Theme</span>
+              <span className="text-sm font-medium text-foreground">{t("nav.language")}</span>
+              <LanguageSwitcher />
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-medium text-foreground">{t("nav.theme")}</span>
               <ThemeToggle />
             </div>
             <Link
@@ -188,7 +199,7 @@ export function Navbar() {
               onClick={() => setIsOpen(false)}
               className="flex w-full items-center justify-center rounded-full bg-accent py-3.5 text-base font-semibold text-background shadow-sm shadow-accent/20 transition-all hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
             >
-              Try Meri
+              {t("nav.tryMeri")}
             </Link>
           </div>
         </div>

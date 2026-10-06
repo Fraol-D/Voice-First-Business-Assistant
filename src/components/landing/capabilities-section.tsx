@@ -1,11 +1,6 @@
-const capabilities = [
-  ["Sales", "Record sales as they happen at the counter.", "Sold 3 shirts for 900 birr"],
-  ["Expenses", "Log transport, utilities, packaging, and daily costs.", "Spent 250 birr on transport"],
-  ["Purchases", "Capture wholesale restocking and supplier costs.", "Bought 20 jackets for 8,000 birr"],
-  ["Inventory", "Adjust stock when goods arrive, sell, or change.", "Add 15 scarves to stock"],
-  ["Customer debt", "Keep customer credit and outstanding balances visible.", "Hana owes 1,200 birr"],
-  ["Business questions", "Ask about sales, stock, expenses, or money owed.", "How much did I sell today?"],
-] as const;
+"use client";
+
+import { useTranslation } from "@/lib/i18n";
 
 function CapabilityIcon({ index }: { index: number }) {
   const paths = [
@@ -24,28 +19,68 @@ function CapabilityIcon({ index }: { index: number }) {
 }
 
 export function CapabilitiesSection() {
+  const { t } = useTranslation();
+
+  const capabilities = [
+    {
+      id: "sales",
+      title: t("capabilities.salesTitle"),
+      description: t("capabilities.salesDesc"),
+      example: t("capabilities.salesExample"),
+    },
+    {
+      id: "expenses",
+      title: t("capabilities.expensesTitle"),
+      description: t("capabilities.expensesDesc"),
+      example: t("capabilities.expensesExample"),
+    },
+    {
+      id: "purchases",
+      title: t("capabilities.purchasesTitle"),
+      description: t("capabilities.purchasesDesc"),
+      example: t("capabilities.purchasesExample"),
+    },
+    {
+      id: "inventory",
+      title: t("capabilities.inventoryTitle"),
+      description: t("capabilities.inventoryDesc"),
+      example: t("capabilities.inventoryExample"),
+    },
+    {
+      id: "debt",
+      title: t("capabilities.debtTitle"),
+      description: t("capabilities.debtDesc"),
+      example: t("capabilities.debtExample"),
+    },
+    {
+      id: "questions",
+      title: t("capabilities.questionsTitle"),
+      description: t("capabilities.questionsDesc"),
+      example: t("capabilities.questionsExample"),
+    },
+  ];
+
   return (
     <section id="capabilities" className="scroll-mt-20 bg-background py-20 lg:py-[120px]">
       <div className="mx-auto max-w-[1240px] px-4 sm:px-8">
         <div className="flex flex-col justify-between gap-5 md:flex-row md:items-end">
           <div className="max-w-[620px]">
             <p className="font-display text-xs font-semibold uppercase tracking-[0.12em] text-accent">
-              Built for daily operations
+              {t("capabilities.badge")}
             </p>
             <h2 className="mt-3 font-display text-[32px] leading-[1.15] font-semibold tracking-[-0.025em] text-foreground sm:text-[38px] lg:text-[44px]">
-              The work your business already does.
+              {t("capabilities.title")}
             </h2>
           </div>
           <p className="max-w-sm text-sm leading-6 text-muted">
-            One calm place for the records and answers you need to keep the
-            day moving.
+            {t("capabilities.subtitle")}
           </p>
         </div>
 
         <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {capabilities.map(([title, description, example], index) => (
+          {capabilities.map((item, index) => (
             <article
-              key={title}
+              key={item.id}
               className="group flex min-h-[220px] flex-col justify-between rounded-2xl border border-border bg-surface p-6 transition-all duration-300 hover:-translate-y-1 hover:border-accent/50 hover:shadow-[0_14px_35px_rgba(254,105,4,0.08)]"
             >
               <div>
@@ -53,15 +88,15 @@ export function CapabilitiesSection() {
                   <CapabilityIcon index={index} />
                 </div>
                 <h3 className="mt-5 font-display text-xl font-semibold tracking-tight text-foreground">
-                  {title}
+                  {item.title}
                 </h3>
-                <p className="mt-2 text-sm leading-6 text-muted">{description}</p>
+                <p className="mt-2 text-sm leading-6 text-muted">{item.description}</p>
               </div>
               <div className="mt-6 border-t border-border pt-4">
                 <span className="text-[10px] font-semibold uppercase tracking-wider text-accent">
-                  Try saying
+                  {t("capabilities.trySaying")}
                 </span>
-                <p className="mt-1 text-xs font-medium text-foreground">“{example}”</p>
+                <p className="mt-1 text-xs font-medium text-foreground">“{item.example}”</p>
               </div>
             </article>
           ))}

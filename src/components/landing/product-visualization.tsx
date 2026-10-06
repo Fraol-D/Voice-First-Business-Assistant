@@ -1,41 +1,47 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-
-const scenarios = [
-  {
-    id: "sale",
-    label: "Record a sale",
-    prompt: "I sold three shirts for 900 birr.",
-    intent: "Sale recorded",
-    detail: "3 shirts · ETB 900",
-    response: "Today's sales updated",
-  },
-  {
-    id: "inventory",
-    label: "Check inventory",
-    prompt: "How many shirts do I have left?",
-    intent: "Inventory balance",
-    detail: "17 shirts remaining",
-    response: "Current in-stock count",
-  },
-  {
-    id: "debt",
-    label: "Track customer debt",
-    prompt: "Who owes me money?",
-    intent: "Outstanding balance",
-    detail: "Hana — ETB 1,200",
-    response: "Unpaid customer balance",
-  },
-] as const;
+import { useEffect, useRef, useState, useMemo } from "react";
+import { useTranslation } from "@/lib/i18n";
 
 export function ProductVisualization() {
+  const { t } = useTranslation();
   const [activeScenario, setActiveScenario] = useState(0);
   const [step, setStep] = useState<1 | 2 | 3>(1);
   const [run, setRun] = useState(0);
   const sectionRef = useRef<HTMLDivElement>(null);
   const hasAnimated = useRef(false);
-  const scenario = scenarios[activeScenario];
+
+  const scenarios = useMemo(
+    () => [
+      {
+        id: "sale",
+        label: t("demo.recordSale"),
+        prompt: t("demo.salePrompt"),
+        intent: t("demo.saleIntent"),
+        detail: t("demo.saleDetail"),
+        response: t("demo.saleResponse"),
+      },
+      {
+        id: "inventory",
+        label: t("demo.checkInventory"),
+        prompt: t("demo.inventoryPrompt"),
+        intent: t("demo.inventoryIntent"),
+        detail: t("demo.inventoryDetail"),
+        response: t("demo.inventoryResponse"),
+      },
+      {
+        id: "debt",
+        label: t("demo.trackDebt"),
+        prompt: t("demo.debtPrompt"),
+        intent: t("demo.debtIntent"),
+        detail: t("demo.debtDetail"),
+        response: t("demo.debtResponse"),
+      },
+    ],
+    [t],
+  );
+
+  const scenario = scenarios[activeScenario] || scenarios[0];
 
   useEffect(() => {
     const element = sectionRef.current;
@@ -78,14 +84,13 @@ export function ProductVisualization() {
       <div ref={sectionRef} className="mx-auto max-w-[1240px] px-4 sm:px-8">
         <div className="mx-auto max-w-[680px] text-center">
           <p className="font-display text-xs font-semibold uppercase tracking-[0.12em] text-accent">
-            See Meri in action
+            {t("demo.badge")}
           </p>
           <h2 className="mt-3 font-display text-[32px] leading-[1.15] font-semibold tracking-[-0.025em] text-foreground sm:text-[38px] lg:text-[44px]">
-            Say what happened. Keep moving.
+            {t("demo.title")}
           </h2>
           <p className="mt-4 text-base leading-[1.6] text-muted sm:text-[18px]">
-            Meri listens, understands the request, and keeps your business
-            records up to date.
+            {t("demo.subtitle")}
           </p>
         </div>
 
@@ -112,7 +117,7 @@ export function ProductVisualization() {
             <div className="flex items-center gap-2.5">
               <span className="size-2 rounded-full bg-accent" />
               <span className="font-display text-xs font-semibold uppercase tracking-wider text-muted">
-                Meri assistant
+                {t("demo.assistantHeader")}
               </span>
             </div>
             <button
@@ -120,14 +125,14 @@ export function ProductVisualization() {
               onClick={replay}
               className="rounded-full border border-border px-3 py-1.5 text-xs text-muted transition-colors hover:border-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
             >
-              Replay demo
+              {t("demo.replay")}
             </button>
           </div>
 
           <div className="grid items-center gap-8 pt-8 lg:grid-cols-[1fr_auto_1fr]">
             <div className="rounded-xl border border-border bg-background p-5">
               <p className="text-[11px] font-semibold uppercase tracking-wider text-muted">
-                You say
+                {t("demo.youSay")}
               </p>
               <p className="mt-4 text-lg leading-relaxed text-foreground">
                 “{scenario.prompt}”
@@ -138,7 +143,7 @@ export function ProductVisualization() {
                   <span className="h-4 w-0.5 rounded-full bg-accent animate-pulse [animation-delay:120ms]" />
                   <span className="h-3 w-0.5 rounded-full bg-accent animate-pulse [animation-delay:240ms]" />
                 </span>
-                Voice input
+                {t("demo.voiceInput")}
               </div>
             </div>
 
@@ -152,7 +157,7 @@ export function ProductVisualization() {
                   style={{ backgroundColor: "var(--orb-inner-bg-active)" }}
                 >
                   {step === 2 ? (
-                    <div className="flex items-center gap-1" aria-label="Meri is thinking">
+                    <div className="flex items-center gap-1" aria-label={t("demo.meriThinking")}>
                       <span className="size-2 rounded-full bg-accent animate-pulse" />
                       <span className="size-2 rounded-full bg-accent animate-pulse [animation-delay:150ms]" />
                       <span className="size-2 rounded-full bg-accent animate-pulse [animation-delay:300ms]" />
@@ -164,12 +169,14 @@ export function ProductVisualization() {
                   )}
                 </div>
               </div>
-              <span className="text-xs text-muted">{step === 2 ? "Understanding…" : "Ready when you are"}</span>
+              <span className="text-xs text-muted">
+                {step === 2 ? t("demo.understanding") : t("demo.readyWhenYouAre")}
+              </span>
             </div>
 
             <div className={`rounded-xl border border-accent/30 bg-accent-dim p-5 transition-all duration-500 ${step === 3 ? "opacity-100 translate-y-0" : "opacity-50 translate-y-1"}`}>
               <p className="text-[11px] font-semibold uppercase tracking-wider text-accent">
-                Meri responds
+                {t("demo.meriResponds")}
               </p>
               <p className="mt-4 font-display text-xl font-semibold tracking-tight text-foreground">
                 {scenario.detail}
@@ -183,7 +190,7 @@ export function ProductVisualization() {
           </div>
 
           <p className="mt-8 border-t border-border pt-4 text-center text-xs text-muted">
-            Illustrative demo data · voice and text input are supported in the assistant
+            {t("demo.disclaimer")}
           </p>
         </div>
       </div>

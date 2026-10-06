@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import { useTranslation } from "@/lib/i18n";
 
 interface VoiceOrbProps {
   /**
@@ -31,11 +32,14 @@ interface VoiceOrbProps {
 export function VoiceOrb({
   isListening = false,
   onToggle,
-  sublabel = "Tap to speak or type below",
+  sublabel,
   children,
 }: VoiceOrbProps) {
+  const { t } = useTranslation();
   const [internalActive, setInternalActive] = useState(false);
   const active = isListening || internalActive;
+
+  const resolvedSublabel = sublabel ?? t("assistant.tapToSpeakOrType");
 
   const handleClick = () => {
     if (onToggle) {
@@ -54,7 +58,7 @@ export function VoiceOrb({
       <button
         type="button"
         onClick={handleClick}
-        aria-label={active ? "Stop speaking" : "Tap to speak"}
+        aria-label={active ? t("assistant.stopSpeaking") : t("assistant.tapToSpeak")}
         className="relative group focus:outline-none cursor-pointer rounded-full"
       >
         {/* Soft Ambient Radial Glow - Persistent warm orange aura (§13–§15) */}
@@ -132,7 +136,7 @@ export function VoiceOrb({
 
       {/* Sublabel (§18 & §29) */}
       <span className="mt-3 text-xs sm:text-sm font-inter text-muted text-center tracking-normal">
-        {active ? "Listening… speak to Meri" : sublabel}
+        {active ? t("assistant.listeningSpeakToMeri") : resolvedSublabel}
       </span>
     </div>
   );
