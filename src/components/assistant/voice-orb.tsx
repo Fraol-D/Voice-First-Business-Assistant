@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import { useTranslation } from "@/lib/i18n";
 
 interface VoiceOrbProps {
   /**
@@ -37,6 +38,7 @@ export function VoiceOrb({
   children,
   className,
 }: VoiceOrbProps) {
+  const { t } = useTranslation();
   const [internalActive, setInternalActive] = useState(false);
   const active = isListening || internalActive;
 
@@ -59,7 +61,7 @@ export function VoiceOrb({
       <button
         type="button"
         onClick={handleClick}
-        aria-label={active ? "Stop speaking" : "Tap to speak"}
+        aria-label={active ? t("assistant.stopSpeaking") : t("assistant.tapToSpeak")}
         className="relative group focus:outline-none cursor-pointer rounded-full active:scale-95 transition-transform duration-200"
       >
         {/* Soft Ambient Radial Glow - Persistent warm orange aura (§13–§15) */}
@@ -139,7 +141,6 @@ export function VoiceOrb({
           )}
         </div>
       </button>
-
     </div>
   );
 }

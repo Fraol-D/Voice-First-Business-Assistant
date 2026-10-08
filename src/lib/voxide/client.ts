@@ -23,9 +23,9 @@ import { createEvent, queryBusiness } from "@/lib/api/client";
 import type { EventType } from "@/lib/api/types";
 import {
   MVP_BUSINESS_ID,
-  DEFAULT_LANGUAGE,
   VOXIDE_ENABLED,
 } from "@/lib/config";
+import { getActiveLocale, formatTranslation as t } from "@/lib/i18n";
 
 // ---------------------------------------------------------------------------
 // Client initialisation
@@ -76,11 +76,10 @@ function getBusinessId(): string {
 /**
  * Returns the current interaction language.
  *
- * Sourced from the existing app config (`DEFAULT_LANGUAGE`) rather than
- * inventing new state — per the capability registration spec.
+ * Sourced from the active locale selection ("en" | "am").
  */
 function getLanguage(): string {
-  return DEFAULT_LANGUAGE;
+  return getActiveLocale();
 }
 
 function asText(value: unknown): string | null {
@@ -174,29 +173,29 @@ function confirmationDetail(
   const currency = currencyOf(args.currency);
   if (actionName === "recordSale") {
     return [
-      `Item: ${asText(args.item) ?? args.item}`,
-      `Quantity: ${asNumber(args.quantity) ?? args.quantity}`,
-      `Amount: ${asNumber(args.amount) ?? args.amount}`,
-      `Currency: ${currency}`,
-      asText(args.customer) ? `Customer: ${asText(args.customer)}` : null,
+      `${t("voxide.item")}: ${asText(args.item) ?? args.item}`,
+      `${t("voxide.quantity")}: ${asNumber(args.quantity) ?? args.quantity}`,
+      `${t("voxide.amount")}: ${asNumber(args.amount) ?? args.amount}`,
+      `${t("voxide.currency")}: ${currency}`,
+      asText(args.customer) ? `${t("voxide.customer")}: ${asText(args.customer)}` : null,
     ]
       .filter((line): line is string => Boolean(line))
       .join("\n");
   }
   if (actionName === "recordExpense") {
     return [
-      `Description: ${asText(args.description) ?? args.description}`,
-      `Amount: ${asNumber(args.amount) ?? args.amount}`,
-      `Currency: ${currency}`,
+      `${t("voxide.description")}: ${asText(args.description) ?? args.description}`,
+      `${t("voxide.amount")}: ${asNumber(args.amount) ?? args.amount}`,
+      `${t("voxide.currency")}: ${currency}`,
     ].join("\n");
   }
   if (actionName === "recordPurchase") {
     return [
-      `Item: ${asText(args.item) ?? args.item}`,
-      `Quantity: ${asNumber(args.quantity) ?? args.quantity}`,
-      `Amount: ${asNumber(args.amount) ?? args.amount}`,
-      `Currency: ${currency}`,
-      asText(args.supplier) ? `Supplier: ${asText(args.supplier)}` : null,
+      `${t("voxide.item")}: ${asText(args.item) ?? args.item}`,
+      `${t("voxide.quantity")}: ${asNumber(args.quantity) ?? args.quantity}`,
+      `${t("voxide.amount")}: ${asNumber(args.amount) ?? args.amount}`,
+      `${t("voxide.currency")}: ${currency}`,
+      asText(args.supplier) ? `${t("voxide.supplier")}: ${asText(args.supplier)}` : null,
     ]
       .filter((line): line is string => Boolean(line))
       .join("\n");
@@ -207,22 +206,22 @@ function confirmationDetail(
       quantity === null
         ? ""
         : quantity > 0
-          ? " (increases stock)"
+          ? t("voxide.increasesStock")
           : quantity < 0
-            ? " (decreases stock)"
-            : " (no stock change)";
+            ? t("voxide.decreasesStock")
+            : t("voxide.noStockChange");
     return [
-      `Item: ${asText(args.item) ?? args.item}`,
-      `Quantity: ${quantity ?? args.quantity}${effect}`,
-      `Reason: ${asText(args.reason) ?? "none"}`,
+      `${t("voxide.item")}: ${asText(args.item) ?? args.item}`,
+      `${t("voxide.quantity")}: ${quantity ?? args.quantity}${effect}`,
+      `${t("voxide.reason")}: ${asText(args.reason) ?? t("voxide.none")}`,
     ].join("\n");
   }
   if (actionName === "recordDebt") {
     return [
-      `Customer: ${asText(args.customer) ?? args.customer}`,
-      `Amount: ${asNumber(args.amount) ?? args.amount}`,
-      `Currency: ${currency}`,
-      `Direction: ${asText(args.direction) ?? args.direction}`,
+      `${t("voxide.customer")}: ${asText(args.customer) ?? args.customer}`,
+      `${t("voxide.amount")}: ${asNumber(args.amount) ?? args.amount}`,
+      `${t("voxide.currency")}: ${currency}`,
+      `${t("voxide.direction")}: ${asText(args.direction) ?? args.direction}`,
     ].join("\n");
   }
   return "";
@@ -242,8 +241,8 @@ function confirmRecord(
   }
   const detail = confirmationDetail(action.name, args);
   const message = detail
-    ? `Confirm this record?\n\n${detail}`
-    : `Confirm: ${action.description}`;
+    ? t("voxide.confirmRecordPrompt", { detail })
+    : t("voxide.confirmActionPrompt", { action: action.description });
   return window.confirm(message);
 }
 
