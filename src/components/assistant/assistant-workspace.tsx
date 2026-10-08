@@ -890,6 +890,13 @@ export function AssistantWorkspace() {
               </span>
             </div>
 
+            <Link
+              href="/dashboard"
+              className="hidden md:inline-flex min-h-[44px] items-center justify-center rounded-full border border-border px-3.5 py-1.5 text-xs font-medium text-foreground hover:border-border-strong hover:text-accent transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+            >
+              Dashboard
+            </Link>
+
             <button
               type="button"
               onClick={() => setIsManualModalOpen(true)}

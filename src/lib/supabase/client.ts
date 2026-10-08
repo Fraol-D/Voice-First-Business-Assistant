@@ -8,26 +8,33 @@ let clientInstance: SupabaseClient | null = null;
  * Uses public NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY.
  * Never exposes service-role keys.
  */
+export function isSupabaseConfigured(): boolean {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL?.trim();
+  const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.trim();
+  return Boolean(
+    url &&
+      key &&
+      !url.includes("placeholder.supabase.co") &&
+      !url.includes("your-project.supabase.co")
+  );
+}
+
 export function createClient(): SupabaseClient {
   if (clientInstance) {
     return clientInstance;
   }
 
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL?.trim();
+  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.trim();
 
   if (!supabaseUrl || !supabaseAnonKey) {
-    // Provide a placeholder instance during build or unconfigured dev environments
-    // to prevent build crashes, while throwing actionable error if invoked at runtime.
-    if (typeof window === "undefined") {
-      return createBrowserClient(
-        "https://placeholder.supabase.co",
-        "placeholder-anon-key"
-      );
-    }
-    throw new Error(
-      "Supabase environment variables are missing. Please define NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY in .env.local."
+    // Provide a safe placeholder instance during build or unconfigured dev environments
+    // to avoid unhandled browser crashes, while isSupabaseConfigured() indicates setup state.
+    clientInstance = createBrowserClient(
+      "https://placeholder.supabase.co",
+      "placeholder-anon-key"
     );
+    return clientInstance;
   }
 
   clientInstance = createBrowserClient(supabaseUrl, supabaseAnonKey);

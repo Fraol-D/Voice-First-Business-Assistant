@@ -80,3 +80,56 @@ export type ApiSuccess<T> = {
 };
 
 export type ApiResult<T> = ApiSuccess<T> | ApiFailure;
+
+export interface SalesTodayMetric {
+  amount: number;
+  currency: string;
+  count: number;
+}
+
+export interface ExpensesTodayMetric {
+  amount: number;
+  currency: string;
+  count: number;
+}
+
+export interface CustomerDebtBreakdown {
+  customer: string;
+  amount: number;
+  currency: string;
+}
+
+export interface CustomerDebtMetric {
+  total: number;
+  currency: string;
+  customers: CustomerDebtBreakdown[];
+}
+
+export interface LowStockItem {
+  item: string;
+  quantity: number;
+  unit: string;
+}
+
+export interface InventoryMetric {
+  total_items: number;
+  low_stock_count: number;
+  items: LowStockItem[];
+}
+
+export interface RecentActivityItem {
+  id: string;
+  type: string;
+  description: string;
+  amount: number | null;
+  currency: string | null;
+  timestamp: string;
+}
+
+export interface DashboardResponse {
+  sales_today: SalesTodayMetric;
+  expenses_today: ExpensesTodayMetric;
+  customer_debt: CustomerDebtMetric;
+  inventory: InventoryMetric;
+  recent_activity: RecentActivityItem[];
+}

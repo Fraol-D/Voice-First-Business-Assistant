@@ -5,6 +5,8 @@ import {
   queryBusiness,
   healthCheck,
   getAuthHeaders,
+  getDashboardSummary,
+  request,
 } from "./client";
 import type { SupabaseClient } from "@supabase/supabase-js";
 
@@ -239,3 +241,114 @@ test("getAuthHeaders safely ignores missing or invalid session tokens", async ()
     assert.deepEqual(authHeaders, {}, `Expected empty headers for ${JSON.stringify(sessionData)}`);
   }
 });
+
+test("getDashboardSummary rejects unauthenticated request without calling fetch", async () => {
+  let fetchCalled = false;
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = async () => {
+    fetchCalled = true;
+    return new Response(JSON.stringify({}), { status: 200 });
+  };
+
+  try {
+    const result = await getDashboardSummary();
+    assert.equal(fetchCalled, false, "fetch should not be called when unauthenticated");
+    assert.equal(result.ok, false);
+    if (!result.ok) {
+      assert.equal(result.status, 401);
+      assert.equal(result.code, "UNAUTHORIZED");
+    }
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+test("getDashboardSummary attaches Authorization header and parses dashboard response", async () => {
+  let capturedHeaders: Headers | null = null;
+  const originalFetch = globalThis.fetch;
+  const mockDashboard = {
+    sales_today: { amount: 1500, currency: "ETB", count: 3 },
+    expenses_today: { amount: 450, currency: "ETB", count: 2 },
+    customer_debt: {
+      total: 800,
+      currency: "ETB",
+      customers: [{ customer: "Abebe", amount: 800, currency: "ETB" }],
+    },
+    inventory: {
+      total_items: 12,
+      low_stock_count: 1,
+      items: [{ item: "hat", quantity: 2, unit: "pcs" }],
+    },
+    recent_activity: [
+      {
+        id: "evt_1",
+        type: "sale",
+        description: "Sale: 1 hat",
+        amount: 250,
+        currency: "ETB",
+        timestamp: "2026-10-08T18:00:00Z",
+      },
+    ],
+  };
+
+  globalThis.fetch = async (_input, init) => {
+    capturedHeaders = new Headers(init?.headers);
+    return new Response(JSON.stringify(mockDashboard), { status: 200 });
+  };
+
+  try {
+    const result = await getDashboardSummary({ Authorization: "Bearer test-jwt-token" });
+    assert.equal(result.ok, true);
+    if (result.ok) {
+      assert.equal(result.data.sales_today.amount, 1500);
+      assert.equal(result.data.inventory.total_items, 12);
+      assert.equal(result.data.recent_activity.length, 1);
+    }
+    assert.ok(capturedHeaders !== null);
+    const headers = capturedHeaders as Headers;
+    assert.equal(headers.get("Authorization"), "Bearer test-jwt-token");
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+test("request normalizes duplicate slashes and trailing slashes", async () => {
+  let requestedUrl: string | null = null;
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = async (input) => {
+    requestedUrl = typeof input === "string" ? input : (input as Request).url;
+    return new Response(JSON.stringify({ status: "ok" }), { status: 200 });
+  };
+
+  try {
+    await request({
+      path: "//api/v1/dashboard/",
+      requiresAuth: false,
+    });
+    assert.equal(requestedUrl, "https://api.example.com/api/v1/dashboard");
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+test("request returns NOT_FOUND code on 404 response", async () => {
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = async () => {
+    return new Response(JSON.stringify({ detail: "Not Found" }), { status: 404 });
+  };
+
+  try {
+    const result = await request({
+      path: "/api/v1/nonexistent",
+      requiresAuth: false,
+    });
+    assert.equal("ok" in result, false);
+    if (!("ok" in result)) {
+      assert.equal(result.response.status, 404);
+    }
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+

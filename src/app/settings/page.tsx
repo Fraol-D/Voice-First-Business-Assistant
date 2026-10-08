@@ -54,6 +54,12 @@ export default function SettingsPage() {
 
           <div className="hidden md:flex items-center gap-2.5">
             <Link
+              href="/dashboard"
+              className="inline-flex min-h-[44px] items-center justify-center rounded-full border border-border px-3.5 py-1.5 text-xs font-medium text-foreground hover:border-border-strong hover:text-accent transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+            >
+              Dashboard
+            </Link>
+            <Link
               href="/assistant"
               className="inline-flex min-h-[44px] items-center justify-center rounded-full bg-accent px-4 py-2 text-xs font-semibold text-background shadow-sm hover:opacity-90 active:scale-95 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
             >

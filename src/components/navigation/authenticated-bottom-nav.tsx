@@ -11,6 +11,7 @@ export function AuthenticatedBottomNav({ hidden = false }: AuthenticatedBottomNa
   const pathname = usePathname();
   const isHome = pathname === "/";
   const isAssistant = pathname === "/assistant" || pathname.startsWith("/assistant/");
+  const isDashboard = pathname === "/dashboard" || pathname.startsWith("/dashboard/");
   const isSettings = pathname === "/settings" || pathname.startsWith("/settings/");
 
   if (hidden) {
@@ -84,18 +85,23 @@ export function AuthenticatedBottomNav({ hidden = false }: AuthenticatedBottomNa
           </span>
         </Link>
 
-        {/* 3. Dashboard (unlinked placeholder) */}
-        <div
-          aria-disabled="true"
-          aria-label="Dashboard (reserved)"
-          className="flex flex-col items-center justify-center min-w-[44px] min-h-[44px] py-1 px-2 text-muted/70 cursor-default select-none"
+        {/* 3. Dashboard (active link) */}
+        <Link
+          href="/dashboard"
+          aria-current={isDashboard ? "page" : undefined}
+          aria-label="Dashboard"
+          className={`flex flex-col items-center justify-center min-w-[44px] min-h-[44px] py-1 px-2 transition-colors duration-150 active:scale-95 ${
+            isDashboard
+              ? "text-accent font-semibold"
+              : "text-muted hover:text-foreground"
+          }`}
         >
           <svg
             className="size-5 shrink-0"
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"
-            strokeWidth={1.8}
+            strokeWidth={isDashboard ? 2 : 1.8}
             strokeLinecap="round"
             strokeLinejoin="round"
             aria-hidden="true"
@@ -108,7 +114,7 @@ export function AuthenticatedBottomNav({ hidden = false }: AuthenticatedBottomNa
           <span className="text-[11px] font-inter mt-1 tracking-tight">
             Dashboard
           </span>
-        </div>
+        </Link>
 
         {/* 4. Settings (active link to /settings) */}
         <Link

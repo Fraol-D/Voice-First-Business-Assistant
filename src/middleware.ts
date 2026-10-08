@@ -9,13 +9,17 @@ function isSafeRedirectPath(path: string | null): boolean {
 
 export async function middleware(request: NextRequest) {
   const { pathname, search } = request.nextUrl;
-  const { response, user } = await updateSession(request);
+  const { response, user, isConfigured } = await updateSession(request);
 
-  const isProtectedPath = pathname.startsWith("/assistant");
+  const isProtectedPath =
+    pathname.startsWith("/assistant") || pathname.startsWith("/dashboard");
   const isAuthPath = pathname === "/login" || pathname === "/signup";
 
   // 1. Unauthenticated user attempting to access protected area
   if (isProtectedPath && !user) {
+    if (!isConfigured) {
+      return response;
+    }
     const loginUrl = request.nextUrl.clone();
     loginUrl.pathname = "/login";
     // Preserve requested destination in next query param

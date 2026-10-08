@@ -7,6 +7,7 @@ import type {
   ApiResult,
   CreateEventRequest,
   CreateEventSuccess,
+  DashboardResponse,
   HealthSuccess,
   InterpretationResult,
   QueryRequest,
@@ -119,7 +120,12 @@ function failureFromPayload(
 ): ApiFailure {
   const missing = asStringArray(payload?.missing_fields);
   const code =
-    payload?.error?.code ?? (httpStatus === 401 ? "UNAUTHORIZED" : undefined);
+    payload?.error?.code ??
+    (httpStatus === 401
+      ? "UNAUTHORIZED"
+      : httpStatus === 404
+        ? "NOT_FOUND"
+        : undefined);
   const isClarification =
     payload?.status === "needs_clarification" ||
     code === "NEEDS_CLARIFICATION" ||
@@ -129,7 +135,9 @@ function failureFromPayload(
     payload?.message ||
     payload?.error?.message ||
     payload?.detail ||
-    "The business service could not complete this request.";
+    (httpStatus === 404
+      ? "Requested API endpoint was not found (404)."
+      : "The business service could not complete this request.");
 
   return {
     ok: false,
@@ -151,6 +159,12 @@ async function readJson(response: Response): Promise<unknown | null> {
   } catch {
     return null;
   }
+}
+
+export interface RequestConfig extends Omit<RequestInit, "body"> {
+  path: string;
+  body?: BodyInit | null;
+  requiresAuth?: boolean;
 }
 
 interface RequestOptions {
@@ -180,15 +194,53 @@ function extractHeader(
   return null;
 }
 
-async function request(
+export async function request<T = unknown>(
+  config: RequestConfig,
+): Promise<{ response: Response; body: T | null } | ApiFailure>;
+export async function request<T = unknown>(
   path: string,
-  init: RequestInit,
-  options: RequestOptions = {},
-): Promise<{ response: Response; body: unknown | null } | ApiFailure> {
+  init?: RequestInit,
+  options?: RequestOptions,
+): Promise<{ response: Response; body: T | null } | ApiFailure>;
+export async function request<T = unknown>(
+  pathOrConfig: string | RequestConfig,
+  maybeInit?: RequestInit,
+  maybeOptions?: RequestOptions,
+): Promise<{ response: Response; body: T | null } | ApiFailure> {
+  const isConfigObj = typeof pathOrConfig !== "string";
+  const rawPath = isConfigObj ? pathOrConfig.path : pathOrConfig;
+  const options: RequestOptions = isConfigObj
+    ? { requiresAuth: pathOrConfig.requiresAuth }
+    : (maybeOptions ?? {});
+  const init: RequestInit = isConfigObj
+    ? {
+        method: pathOrConfig.method,
+        headers: pathOrConfig.headers,
+        body: pathOrConfig.body,
+        cache: pathOrConfig.cache,
+        credentials: pathOrConfig.credentials,
+        mode: pathOrConfig.mode,
+        redirect: pathOrConfig.redirect,
+        referrer: pathOrConfig.referrer,
+        referrerPolicy: pathOrConfig.referrerPolicy,
+        signal: pathOrConfig.signal,
+      }
+    : (maybeInit ?? {});
+
   const baseUrl = getApiBaseUrl();
   if (!baseUrl) {
     return { ok: false, kind: "config", message: CONFIG_MESSAGE };
   }
+
+  // Normalize base URL and path to avoid duplicate or trailing slashes
+  const cleanBase = baseUrl.replace(/\/+$/, "");
+  const normalizedPath = rawPath.startsWith("/") ? rawPath : `/${rawPath}`;
+  const deDuplicatedPath = normalizedPath.replace(/\/{2,}/g, "/");
+  const cleanPath =
+    deDuplicatedPath.length > 1
+      ? deDuplicatedPath.replace(/\/+$/, "")
+      : deDuplicatedPath;
+  const fullUrl = `${cleanBase}${cleanPath}`;
 
   let authHeaders: Record<string, string> = {};
   if (options.requiresAuth) {
@@ -234,12 +286,19 @@ async function request(
       requestHeaders.set("Authorization", authHeaders.Authorization);
     }
 
-    const response = await fetch(`${baseUrl}${path}`, {
+    const response = await fetch(fullUrl, {
       ...init,
       headers: requestHeaders,
     });
     const body = await readJson(response);
-    return { response, body };
+
+    if (!response.ok && response.status === 404) {
+      console.warn(
+        `[API 404 Not Found] ${init.method ?? "GET"} ${fullUrl} returned 404 Not Found. Backend route path requested: "${cleanPath}".`,
+      );
+    }
+
+    return { response, body: body as T | null };
   } catch {
     return { ok: false, kind: "network", message: CONNECTIVITY_MESSAGE };
   }
@@ -404,3 +463,46 @@ export async function queryBusiness(
     status: response.status,
   };
 }
+
+export async function getDashboardSummary(
+  initHeaders?: HeadersInit,
+): Promise<ApiResult<DashboardResponse>> {
+  const result = await request<DashboardResponse>({
+    path: "/api/v1/dashboard",
+    method: "GET",
+    headers: initHeaders,
+    requiresAuth: true,
+  });
+  if ("ok" in result) {
+    return result;
+  }
+
+  const { response, body } = result;
+  const parsed = (body ?? {}) as ErrorPayload & Partial<DashboardResponse>;
+
+  if (!response.ok) {
+    return failureFromPayload(parsed as ErrorPayload, response.status);
+  }
+
+  if (
+    !parsed ||
+    typeof parsed !== "object" ||
+    !("sales_today" in parsed) ||
+    !("expenses_today" in parsed) ||
+    !("customer_debt" in parsed) ||
+    !("inventory" in parsed)
+  ) {
+    return {
+      ok: false,
+      kind: "error",
+      message: "The business service returned an unexpected dashboard response.",
+      status: response.status,
+    };
+  }
+
+  return {
+    ok: true,
+    data: parsed as DashboardResponse,
+    status: response.status,
+  };
+}

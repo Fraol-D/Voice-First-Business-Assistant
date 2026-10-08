@@ -49,14 +49,19 @@ export function Navbar() {
           {/* Desktop-only Auth & CTA */}
           <div className="hidden md:flex items-center gap-2.5">
             {!isLoading && user ? (
-              <div className="flex items-center gap-2.5">
+              <div className="flex items-center gap-3">
+                <Link
+                  href="/dashboard"
+                  className="text-sm font-medium text-foreground hover:opacity-70 transition-opacity"
+                >
+                  Dashboard
+                </Link>
                 <Link
                   href="/assistant"
                   className="inline-flex items-center justify-center rounded-full bg-accent px-4 py-2 text-sm font-medium text-background shadow-sm shadow-accent/20 transition-all hover:-translate-y-0.5 hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
                 >
                   Assistant
                 </Link>
-
               </div>
             ) : (
               <div className="flex items-center gap-3">
