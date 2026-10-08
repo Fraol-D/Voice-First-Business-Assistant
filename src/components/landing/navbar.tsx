@@ -2,16 +2,19 @@
 
 import Link from "next/link";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { LanguageSwitcher } from "@/components/language-switcher";
 import { MeriLogo } from "@/components/landing/meri-logo";
 import { useAuth } from "@/lib/auth/auth-context";
-
-const PUBLIC_NAV_LINKS = [
-  { href: "#demo", label: "Demo" },
-  { href: "#capabilities", label: "Capabilities" },
-];
+import { useTranslation } from "@/lib/i18n";
 
 export function Navbar() {
   const { user, isLoading } = useAuth();
+  const { t } = useTranslation();
+
+  const publicNavLinks = [
+    { href: "#demo", label: t("nav.demo") },
+    { href: "#capabilities", label: t("nav.capabilities") },
+  ];
 
   return (
     <header className="sticky top-0 z-40 w-full border-b border-border bg-background pt-[env(safe-area-inset-top,0px)]">
@@ -21,7 +24,7 @@ export function Navbar() {
           <Link
             href="/"
             className="flex items-center gap-1.5 rounded-sm py-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
-            aria-label="Meri homepage"
+            aria-label={t("nav.home")}
           >
             <MeriLogo />
           </Link>
@@ -30,9 +33,9 @@ export function Navbar() {
         {/* Zone 2: Center — Demo, Capabilities, Dashboard */}
         <nav
           className="hidden md:flex absolute left-1/2 -translate-x-1/2 items-center gap-8 text-[15px] font-medium text-foreground"
-          aria-label="Main navigation"
+          aria-label={t("nav.mainNavigation")}
         >
-          {PUBLIC_NAV_LINKS.map((link) => (
+          {publicNavLinks.map((link) => (
             <Link
               key={link.href}
               href={link.href}
@@ -60,7 +63,7 @@ export function Navbar() {
                   href="/assistant"
                   className="inline-flex items-center justify-center rounded-full bg-accent px-4 py-2 text-sm font-medium text-background shadow-sm shadow-accent/20 transition-all hover:-translate-y-0.5 hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
                 >
-                  Assistant
+                  {t("nav.assistant")}
                 </Link>
               </div>
             ) : (
@@ -76,12 +79,13 @@ export function Navbar() {
                   href="/assistant"
                   className="inline-flex items-center justify-center rounded-full bg-accent px-4 py-2 text-sm font-medium text-background shadow-sm shadow-accent/20 transition-all hover:-translate-y-0.5 hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
                 >
-                  Assistant
+                  {t("nav.assistant")}
                 </Link>
               </div>
             )}
           </div>
 
+          <LanguageSwitcher />
           <ThemeToggle />
 
           {/* Far Right: Profile Button */}
