@@ -50,20 +50,20 @@ export function Navbar() {
         {/* Zone 3: Right — Assistant, Theme, Profile */}
         <div className="ml-auto flex items-center gap-2 sm:gap-3">
           {/* Desktop-only Auth & CTA */}
-          <div className="hidden md:flex items-center gap-2.5">
+          <div className="hidden items-center gap-2 md:flex">
             {!isLoading && user ? (
-              <div className="flex items-center gap-3">
-                <Link
-                  href="/dashboard"
-                  className="text-sm font-medium text-foreground hover:opacity-70 transition-opacity"
-                >
-                  Dashboard
-                </Link>
+              <div className="flex items-center gap-2">
                 <Link
                   href="/assistant"
-                  className="inline-flex items-center justify-center rounded-full bg-accent px-4 py-2 text-sm font-medium text-background shadow-sm shadow-accent/20 transition-all hover:-translate-y-0.5 hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+                  className="inline-flex h-10 items-center justify-center rounded-full bg-accent px-4 text-sm font-medium text-background shadow-sm shadow-accent/20 transition-all hover:-translate-y-0.5 hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
                 >
                   {t("nav.assistant")}
+                </Link>
+                <Link
+                  href="/dashboard"
+                  className="inline-flex h-10 items-center justify-center rounded-full border border-border bg-surface px-4 text-sm font-medium text-foreground transition-colors hover:border-border-strong hover:bg-surface-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+                >
+                  Dashboard
                 </Link>
               </div>
             ) : (
@@ -85,13 +85,15 @@ export function Navbar() {
             )}
           </div>
 
-          <LanguageSwitcher />
-          <ThemeToggle />
+          <div className="flex items-center gap-2 border-l border-border pl-3">
+            <ThemeToggle className="size-10 min-h-10 min-w-10" />
+            <LanguageSwitcher variant="compact" />
+          </div>
 
           {/* Far Right: Profile Button */}
           <Link
             href="/settings#profile"
-            className="relative inline-flex min-w-[44px] min-h-[44px] size-11 items-center justify-center rounded-full border border-border bg-surface text-foreground transition-all duration-200 hover:border-border-strong hover:text-accent active:scale-95 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+            className="relative ml-2 inline-flex size-10 min-h-10 min-w-10 items-center justify-center rounded-full border border-border bg-surface text-foreground transition-all duration-200 hover:border-border-strong hover:text-accent active:scale-95 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
             aria-label="Profile and Settings"
             title="Profile & Settings"
           >
