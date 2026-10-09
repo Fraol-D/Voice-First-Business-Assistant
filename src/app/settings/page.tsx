@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth/auth-context";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { LanguageSwitcher } from "@/components/language-switcher";
 import { MeriLogo } from "@/components/landing/meri-logo";
 import { AuthenticatedBottomNav } from "@/components/navigation/authenticated-bottom-nav";
 
@@ -243,6 +244,19 @@ export default function SettingsPage() {
             <div className="flex items-center">
               <ThemeToggle />
             </div>
+          </div>
+
+          <div className="flex items-center justify-between gap-4 rounded-xl border border-border bg-background/50 p-4">
+            <div>
+              <div className="text-sm font-semibold text-foreground">
+                Language
+              </div>
+              <div className="mt-0.5 text-xs text-muted">
+                Choose between English and Amharic.
+              </div>
+            </div>
+
+            <LanguageSwitcher variant="compact" />
           </div>
         </section>
 
