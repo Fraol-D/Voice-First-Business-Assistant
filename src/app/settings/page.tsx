@@ -163,44 +163,7 @@ export default function SettingsPage() {
           )}
         </section>
 
-        {/* Section 2: Dashboard Placeholder */}
-        <section className="rounded-2xl border border-border bg-surface/50 p-5 sm:p-6 space-y-3">
-          <div className="flex items-center justify-between">
-            <h2 className="font-display font-medium text-lg text-foreground flex items-center gap-2">
-              <svg
-                className="size-5 text-muted shrink-0"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                strokeWidth={1.8}
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                aria-hidden="true"
-              >
-                <rect x="3" y="3" width="7" height="9" rx="1" />
-                <rect x="14" y="3" width="7" height="5" rx="1" />
-                <rect x="14" y="12" width="7" height="9" rx="1" />
-                <rect x="3" y="16" width="7" height="5" rx="1" />
-              </svg>
-              Dashboard
-            </h2>
-            <span className="rounded-full border border-border bg-surface px-2.5 py-0.5 text-[11px] font-medium text-muted">
-              Reserved Surface
-            </span>
-          </div>
-
-          <p className="text-xs sm:text-sm text-muted leading-relaxed">
-            Business performance metrics, daily sales totals, and inventory velocity summaries will live here.
-          </p>
-
-          <div className="flex items-center justify-center rounded-xl border border-dashed border-border/80 py-8 px-4 text-center bg-background/30">
-            <span className="text-xs text-muted/70">
-              No active dashboard metrics configured yet.
-            </span>
-          </div>
-        </section>
-
-        {/* Section 3: Appearance / Theme */}
+        {/* Section 2: Appearance / Theme */}
         <section className="rounded-2xl border border-border bg-surface/50 p-5 sm:p-6 space-y-4">
           <div>
             <h2 className="font-display font-medium text-lg text-foreground flex items-center gap-2">
