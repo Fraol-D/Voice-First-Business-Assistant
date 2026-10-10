@@ -115,6 +115,7 @@ export interface InventoryMetric {
   total_items: number;
   low_stock_count: number;
   items: LowStockItem[];
+  all_items?: LowStockItem[];
 }
 
 export interface RecentActivityItem {

@@ -22,11 +22,19 @@ const DEMO_PREVIEW_DATA: DashboardResponse = {
     ],
   },
   inventory: {
-    total_items: 24,
+    total_items: 6,
     low_stock_count: 2,
     items: [
       { item: "cotton shirts", quantity: 3, unit: "pcs" },
       { item: "leather shoes", quantity: 1, unit: "pairs" },
+    ],
+    all_items: [
+      { item: "cotton shirts", quantity: 3, unit: "pcs" },
+      { item: "leather shoes", quantity: 1, unit: "pairs" },
+      { item: "denim jackets", quantity: 18, unit: "pcs" },
+      { item: "silk scarves", quantity: 45, unit: "pcs" },
+      { item: "canvas sneakers", quantity: 12, unit: "pairs" },
+      { item: "wool sweaters", quantity: 0, unit: "pcs" },
     ],
   },
   recent_activity: [
@@ -724,7 +732,9 @@ export default function DashboardPage() {
                   </span>
                 </div>
                 <div className="text-xs">
-                  {(inventory?.low_stock_count ?? 0) > 0 ? (
+                  {(inventory?.total_items ?? 0) === 0 ? (
+                    <span className="text-muted">No items tracked yet</span>
+                  ) : (inventory?.low_stock_count ?? 0) > 0 ? (
                     <span className="inline-flex items-center gap-1.5 text-warning font-medium">
                       <span className="size-1.5 rounded-full bg-warning" />
                       {inventory?.low_stock_count}{" "}
@@ -835,100 +845,158 @@ export default function DashboardPage() {
               )}
             </section>
 
-            {/* Section: Inventory Breakdown / Low Stock Alerts */}
+            {/* Section: Inventory Breakdown / Stock On Hand */}
             <section className="rounded-2xl border border-border bg-surface/50 p-5 sm:p-6 space-y-4">
-              <div className="flex items-center justify-between">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                 <div>
                   <h2 className="font-display font-semibold text-lg text-foreground">
                     Inventory Breakdown
                   </h2>
                   <p className="text-xs text-muted mt-0.5">
-                    Tracked items and low stock notifications.
+                    Tracked on-hand quantities and stock status.
                   </p>
                 </div>
-                {inventory && inventory.low_stock_count > 0 && (
-                  <span className="rounded-full bg-warning/15 px-2.5 py-0.5 text-[11px] font-medium text-warning">
-                    {inventory.low_stock_count} low
-                  </span>
-                )}
+                <div className="flex items-center gap-2">
+                  {inventory && (inventory.total_items > 0 || (inventory.all_items && inventory.all_items.length > 0)) && (
+                    <span className="rounded-full bg-surface-strong px-2.5 py-0.5 text-[11px] font-medium text-foreground">
+                      {inventory.total_items || inventory.all_items?.length || 0}{" "}
+                      {(inventory.total_items || inventory.all_items?.length || 0) === 1 ? "item" : "items"}
+                    </span>
+                  )}
+                  {inventory && inventory.low_stock_count > 0 && (
+                    <span className="rounded-full bg-warning/15 px-2.5 py-0.5 text-[11px] font-medium text-warning">
+                      {inventory.low_stock_count} low
+                    </span>
+                  )}
+                </div>
               </div>
 
               {isFetching && !previewMode ? (
                 <div className="space-y-3 pt-2">
-                  {[1, 2].map((i) => (
+                  {[1, 2, 3].map((i) => (
                     <div
                       key={i}
                       className="h-14 rounded-xl border border-border bg-surface animate-pulse"
                     />
                   ))}
                 </div>
-              ) : inventory && inventory.items.length > 0 ? (
-                <div className="space-y-2.5 pt-1">
-                  {inventory.items.map((it, idx) => (
-                    <div
-                      key={`${it.item}-${idx}`}
-                      className="flex items-center justify-between p-3.5 rounded-xl border border-border bg-background/50 hover:border-border-strong transition-colors"
-                    >
-                      <div className="flex items-center gap-3">
-                        <div className="flex size-9 items-center justify-center rounded-full bg-surface-strong text-muted font-display font-semibold text-xs">
-                          <svg
-                            className="size-4"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke="currentColor"
-                            strokeWidth={2}
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"
-                            />
-                          </svg>
-                        </div>
-                        <div>
-                          <div className="text-sm font-semibold text-foreground capitalize">
-                            {it.item}
-                          </div>
-                          <div className="text-[11px] text-muted">
-                            {it.quantity} {it.unit} remaining
-                          </div>
-                        </div>
+              ) : (() => {
+                const inventoryList =
+                  inventory?.all_items && inventory.all_items.length > 0
+                    ? inventory.all_items
+                    : inventory?.items ?? [];
+
+                if (inventoryList.length === 0) {
+                  return (
+                    <div className="rounded-xl border border-border/60 bg-background/40 p-6 text-center space-y-2.5">
+                      <div className="mx-auto flex size-10 items-center justify-center rounded-full bg-surface-strong text-muted">
+                        <svg
+                          className="size-5"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                          strokeWidth={2}
+                          aria-hidden="true"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"
+                          />
+                        </svg>
                       </div>
-                      <div className="text-right">
-                        <span className="inline-flex items-center rounded-full bg-warning/15 px-2.5 py-1 text-[11px] font-semibold text-warning">
-                          Low Stock
-                        </span>
+                      <div className="font-display font-medium text-sm text-foreground">
+                        No inventory records found
                       </div>
+                      <p className="text-xs text-muted max-w-sm mx-auto leading-relaxed">
+                        Purchases, sales, and stock adjustments recorded in Assistant will automatically update your on-hand quantities here.
+                      </p>
                     </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="rounded-xl border border-border/60 bg-background/40 p-6 text-center space-y-2">
-                  <div className="mx-auto flex size-10 items-center justify-center rounded-full bg-success/15 text-success">
-                    <svg
-                      className="size-5"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                      strokeWidth={2}
-                      aria-hidden="true"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        d="M5 13l4 4L19 7"
-                      />
-                    </svg>
+                  );
+                }
+
+                return (
+                  <div className="space-y-2.5 pt-1">
+                    {inventoryList.map((it, idx) => {
+                      const isOutOfStock = it.quantity <= 0;
+                      const isLowStock =
+                        !isOutOfStock &&
+                        (inventory?.items?.some((l) => l.item.toLowerCase() === it.item.toLowerCase()) ||
+                          it.quantity <= 10);
+
+                      return (
+                        <div
+                          key={`${it.item}-${idx}`}
+                          className="flex items-center justify-between p-3.5 rounded-xl border border-border bg-background/50 hover:border-border-strong transition-colors"
+                        >
+                          <div className="flex items-center gap-3 min-w-0 pr-3">
+                            <div
+                              className={`flex size-9 shrink-0 items-center justify-center rounded-full font-display font-semibold text-xs ${
+                                isOutOfStock
+                                  ? "bg-error/15 text-error"
+                                  : isLowStock
+                                    ? "bg-warning/15 text-warning"
+                                    : "bg-surface-strong text-foreground"
+                              }`}
+                            >
+                              <svg
+                                className="size-4"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                stroke="currentColor"
+                                strokeWidth={2}
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"
+                                />
+                              </svg>
+                            </div>
+                            <div className="min-w-0">
+                              <div className="text-sm font-semibold text-foreground capitalize truncate">
+                                {it.item}
+                              </div>
+                              <div className="text-[11px] text-muted">
+                                {it.quantity} {it.unit} on hand
+                              </div>
+                            </div>
+                          </div>
+
+                          <div className="text-right shrink-0">
+                            {isOutOfStock ? (
+                              <span className="inline-flex items-center gap-1.5 rounded-full bg-error/15 px-2.5 py-1 text-[11px] font-semibold text-error">
+                                <span className="size-1.5 rounded-full bg-error" />
+                                Out of Stock
+                              </span>
+                            ) : isLowStock ? (
+                              <span className="inline-flex items-center gap-1.5 rounded-full bg-warning/15 px-2.5 py-1 text-[11px] font-semibold text-warning">
+                                <span className="size-1.5 rounded-full bg-warning" />
+                                Low Stock
+                              </span>
+                            ) : (
+                              <span className="inline-flex items-center gap-1.5 rounded-full bg-success/15 px-2.5 py-1 text-[11px] font-semibold text-success">
+                                <span className="size-1.5 rounded-full bg-success" />
+                                In Stock
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
                   </div>
-                  <div className="font-display font-medium text-sm text-foreground">
-                    All inventory levels healthy
-                  </div>
-                  <p className="text-xs text-muted max-w-sm mx-auto">
-                    No items are currently below low-stock thresholds. Manage
-                    stock in Assistant with voice adjustments.
-                  </p>
-                </div>
-              )}
+                );
+              })()}
+
+              <div className="pt-3 border-t border-border/60 flex items-center justify-between text-xs text-muted">
+                <span>Manage stock via voice or manual entry</span>
+                <Link
+                  href="/assistant"
+                  className="inline-flex items-center gap-1 font-semibold text-foreground hover:text-accent transition-colors"
+                >
+                  Open Assistant &rarr;
+                </Link>
+              </div>
             </section>
           </div>
 
