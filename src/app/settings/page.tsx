@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth/auth-context";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { LanguageSwitcher } from "@/components/language-switcher";
 import { MeriLogo } from "@/components/landing/meri-logo";
 import { AuthenticatedBottomNav } from "@/components/navigation/authenticated-bottom-nav";
 
@@ -53,6 +54,12 @@ export default function SettingsPage() {
           </div>
 
           <div className="hidden md:flex items-center gap-2.5">
+            <Link
+              href="/dashboard"
+              className="inline-flex min-h-[44px] items-center justify-center rounded-full border border-border px-3.5 py-1.5 text-xs font-medium text-foreground hover:border-border-strong hover:text-accent transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+            >
+              Dashboard
+            </Link>
             <Link
               href="/assistant"
               className="inline-flex min-h-[44px] items-center justify-center rounded-full bg-accent px-4 py-2 text-xs font-semibold text-background shadow-sm hover:opacity-90 active:scale-95 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
@@ -126,14 +133,6 @@ export default function SettingsPage() {
                 </div>
               </div>
 
-              <button
-                type="button"
-                onClick={() => void handleSignOut()}
-                disabled={isSigningOut}
-                className="inline-flex min-h-[44px] sm:min-h-[38px] items-center justify-center rounded-full border border-border bg-surface px-4 py-2 text-xs font-medium text-muted hover:text-red-600 dark:hover:text-red-400 hover:border-red-500/30 active:scale-95 transition-all cursor-pointer disabled:opacity-50"
-              >
-                {isSigningOut ? "Signing Out…" : "Sign Out"}
-              </button>
             </div>
           ) : (
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 rounded-xl border border-border bg-background/50">
@@ -209,7 +208,43 @@ export default function SettingsPage() {
               <ThemeToggle />
             </div>
           </div>
+
+          <div className="flex items-center justify-between gap-4 rounded-xl border border-border bg-background/50 p-4">
+            <div>
+              <div className="text-sm font-semibold text-foreground">
+                Language
+              </div>
+              <div className="mt-0.5 text-xs text-muted">
+                Choose between English and Amharic.
+              </div>
+            </div>
+
+            <LanguageSwitcher variant="compact" />
+          </div>
         </section>
+
+        {user ? (
+          <section className="rounded-2xl border border-border bg-surface/50 p-5 sm:p-6">
+            <div className="flex items-center justify-between gap-4">
+              <div>
+                <h2 className="font-display font-medium text-lg text-foreground">
+                  Sign out
+                </h2>
+                <p className="text-xs text-muted mt-0.5">
+                  End your current account session on this device.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => void handleSignOut()}
+                disabled={isSigningOut}
+                className="inline-flex min-h-[44px] sm:min-h-[38px] items-center justify-center rounded-full border border-border bg-surface px-4 py-2 text-xs font-medium text-muted hover:text-red-600 dark:hover:text-red-400 hover:border-red-500/30 active:scale-95 transition-all cursor-pointer disabled:opacity-50"
+              >
+                {isSigningOut ? "Signing Out…" : "Sign Out"}
+              </button>
+            </div>
+          </section>
+        ) : null}
       </main>
 
       {/* Mobile Bottom Navigation */}

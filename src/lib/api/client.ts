@@ -1,11 +1,13 @@
 import { getAiEngineUrl, getApiBaseUrl } from "@/lib/config";
 import { createClient } from "@/lib/supabase/client";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { EVENT_TYPES } from "@/lib/api/types";
 import type {
   ApiFailure,
   ApiResult,
   CreateEventRequest,
   CreateEventSuccess,
+  DashboardResponse,
   HealthSuccess,
   InterpretationResult,
   QueryRequest,
@@ -16,17 +18,20 @@ import type {
  * Retrieves the current Supabase session JWT in the browser and formats
  * the Authorization header. Prepared for authenticated requests to FastAPI.
  */
-export async function getAuthHeaders(): Promise<Record<string, string>> {
-  if (typeof window === "undefined") {
+export async function getAuthHeaders(
+  client?: SupabaseClient,
+): Promise<Record<string, string>> {
+  if (typeof window === "undefined" && !client) {
     return {};
   }
   try {
-    const supabase = createClient();
+    const supabase = client ?? createClient();
     const {
       data: { session },
     } = await supabase.auth.getSession();
-    if (session?.access_token) {
-      return { Authorization: `Bearer ${session.access_token}` };
+    const token = session?.access_token?.trim();
+    if (token && token !== "undefined" && token !== "null") {
+      return { Authorization: `Bearer ${token}` };
     }
   } catch {
     // Graceful fallback when unconfigured or client unavailable
@@ -44,10 +49,14 @@ const AI_CONFIG_MESSAGE =
 const AI_CONNECTIVITY_MESSAGE =
   "Unable to connect to the AI engine. Please try again.";
 
+const AUTH_REQUIRED_MESSAGE =
+  "Authentication required. Please sign in to continue.";
+
 type ErrorPayload = {
   success?: boolean;
   status?: string;
   message?: string;
+  detail?: string;
   missing_fields?: unknown;
   error?: {
     code?: string;
@@ -59,7 +68,9 @@ function asStringArray(value: unknown): string[] | undefined {
   if (!Array.isArray(value)) {
     return undefined;
   }
-  const fields = value.filter((item): item is string => typeof item === "string");
+  const fields = value.filter(
+    (item): item is string => typeof item === "string",
+  );
   return fields.length > 0 ? fields : undefined;
 }
 
@@ -108,7 +119,13 @@ function failureFromPayload(
   httpStatus: number,
 ): ApiFailure {
   const missing = asStringArray(payload?.missing_fields);
-  const code = payload?.error?.code;
+  const code =
+    payload?.error?.code ??
+    (httpStatus === 401
+      ? "UNAUTHORIZED"
+      : httpStatus === 404
+        ? "NOT_FOUND"
+        : undefined);
   const isClarification =
     payload?.status === "needs_clarification" ||
     code === "NEEDS_CLARIFICATION" ||
@@ -117,7 +134,10 @@ function failureFromPayload(
   const message =
     payload?.message ||
     payload?.error?.message ||
-    "The business service could not complete this request.";
+    payload?.detail ||
+    (httpStatus === 404
+      ? "Requested API endpoint was not found (404)."
+      : "The business service could not complete this request.");
 
   return {
     ok: false,
@@ -141,26 +161,144 @@ async function readJson(response: Response): Promise<unknown | null> {
   }
 }
 
-async function request(
+export interface RequestConfig extends Omit<RequestInit, "body"> {
+  path: string;
+  body?: BodyInit | null;
+  requiresAuth?: boolean;
+}
+
+interface RequestOptions {
+  requiresAuth?: boolean;
+}
+
+function extractHeader(
+  headers: HeadersInit | undefined,
+  name: string,
+): string | null {
+  if (!headers) return null;
+  if (typeof Headers !== "undefined" && headers instanceof Headers) {
+    return headers.get(name);
+  }
+  if (Array.isArray(headers)) {
+    const entry = headers.find(
+      ([k]) => k.toLowerCase() === name.toLowerCase(),
+    );
+    return entry ? entry[1] : null;
+  }
+  const rec = headers as Record<string, string>;
+  for (const k of Object.keys(rec)) {
+    if (k.toLowerCase() === name.toLowerCase()) {
+      return rec[k];
+    }
+  }
+  return null;
+}
+
+export async function request<T = unknown>(
+  config: RequestConfig,
+): Promise<{ response: Response; body: T | null } | ApiFailure>;
+export async function request<T = unknown>(
   path: string,
-  init: RequestInit,
-): Promise<{ response: Response; body: unknown | null } | ApiFailure> {
+  init?: RequestInit,
+  options?: RequestOptions,
+): Promise<{ response: Response; body: T | null } | ApiFailure>;
+export async function request<T = unknown>(
+  pathOrConfig: string | RequestConfig,
+  maybeInit?: RequestInit,
+  maybeOptions?: RequestOptions,
+): Promise<{ response: Response; body: T | null } | ApiFailure> {
+  const isConfigObj = typeof pathOrConfig !== "string";
+  const rawPath = isConfigObj ? pathOrConfig.path : pathOrConfig;
+  const options: RequestOptions = isConfigObj
+    ? { requiresAuth: pathOrConfig.requiresAuth }
+    : (maybeOptions ?? {});
+  const init: RequestInit = isConfigObj
+    ? {
+        method: pathOrConfig.method,
+        headers: pathOrConfig.headers,
+        body: pathOrConfig.body,
+        cache: pathOrConfig.cache,
+        credentials: pathOrConfig.credentials,
+        mode: pathOrConfig.mode,
+        redirect: pathOrConfig.redirect,
+        referrer: pathOrConfig.referrer,
+        referrerPolicy: pathOrConfig.referrerPolicy,
+        signal: pathOrConfig.signal,
+      }
+    : (maybeInit ?? {});
+
   const baseUrl = getApiBaseUrl();
   if (!baseUrl) {
     return { ok: false, kind: "config", message: CONFIG_MESSAGE };
   }
 
+  // Normalize base URL and path to avoid duplicate or trailing slashes
+  const cleanBase = baseUrl.replace(/\/+$/, "");
+  const normalizedPath = rawPath.startsWith("/") ? rawPath : `/${rawPath}`;
+  const deDuplicatedPath = normalizedPath.replace(/\/{2,}/g, "/");
+  const cleanPath =
+    deDuplicatedPath.length > 1
+      ? deDuplicatedPath.replace(/\/+$/, "")
+      : deDuplicatedPath;
+  const fullUrl = `${cleanBase}${cleanPath}`;
+
+  let authHeaders: Record<string, string> = {};
+  if (options.requiresAuth) {
+    const explicitAuth = extractHeader(init.headers, "Authorization");
+    const validExplicitAuth = Boolean(
+      explicitAuth &&
+        explicitAuth.trim().length > 0 &&
+        explicitAuth !== "Bearer undefined" &&
+        explicitAuth !== "Bearer null",
+    );
+
+    if (validExplicitAuth) {
+      authHeaders = {};
+    } else {
+      authHeaders = await getAuthHeaders();
+      const tokenHeader = authHeaders.Authorization;
+      if (
+        !tokenHeader ||
+        !tokenHeader.trim() ||
+        tokenHeader === "Bearer undefined" ||
+        tokenHeader === "Bearer null"
+      ) {
+        return {
+          ok: false,
+          kind: "error",
+          message: AUTH_REQUIRED_MESSAGE,
+          status: 401,
+          code: "UNAUTHORIZED",
+        };
+      }
+    }
+  }
+
   try {
-    const response = await fetch(`${baseUrl}${path}`, {
+    const requestHeaders = new Headers(init.headers);
+    if (!requestHeaders.has("Accept")) {
+      requestHeaders.set("Accept", "application/json");
+    }
+    if (init.body && !requestHeaders.has("Content-Type")) {
+      requestHeaders.set("Content-Type", "application/json");
+    }
+    if (authHeaders.Authorization && !requestHeaders.has("Authorization")) {
+      requestHeaders.set("Authorization", authHeaders.Authorization);
+    }
+
+    const response = await fetch(fullUrl, {
       ...init,
-      headers: {
-        Accept: "application/json",
-        ...(init.body ? { "Content-Type": "application/json" } : {}),
-        ...init.headers,
-      },
+      headers: requestHeaders,
     });
     const body = await readJson(response);
-    return { response, body };
+
+    if (!response.ok && response.status === 404) {
+      console.warn(
+        `[API 404 Not Found] ${init.method ?? "GET"} ${fullUrl} returned 404 Not Found. Backend route path requested: "${cleanPath}".`,
+      );
+    }
+
+    return { response, body: body as T | null };
   } catch {
     return { ok: false, kind: "network", message: CONNECTIVITY_MESSAGE };
   }
@@ -233,11 +371,17 @@ export async function healthCheck(): Promise<ApiResult<HealthSuccess>> {
 
 export async function createEvent(
   payload: CreateEventRequest,
+  initHeaders?: HeadersInit,
 ): Promise<ApiResult<CreateEventSuccess>> {
-  const result = await request("/api/v1/events", {
-    method: "POST",
-    body: JSON.stringify(payload),
-  });
+  const result = await request(
+    "/api/v1/events",
+    {
+      method: "POST",
+      body: JSON.stringify(payload),
+      headers: initHeaders,
+    },
+    { requiresAuth: true },
+  );
   if ("ok" in result) {
     return result;
   }
@@ -274,11 +418,17 @@ export async function createEvent(
 
 export async function queryBusiness(
   payload: QueryRequest,
+  initHeaders?: HeadersInit,
 ): Promise<ApiResult<QuerySuccess>> {
-  const result = await request("/api/v1/query", {
-    method: "POST",
-    body: JSON.stringify(payload),
-  });
+  const result = await request(
+    "/api/v1/query",
+    {
+      method: "POST",
+      body: JSON.stringify(payload),
+      headers: initHeaders,
+    },
+    { requiresAuth: true },
+  );
   if ("ok" in result) {
     return result;
   }
@@ -313,3 +463,46 @@ export async function queryBusiness(
     status: response.status,
   };
 }
+
+export async function getDashboardSummary(
+  initHeaders?: HeadersInit,
+): Promise<ApiResult<DashboardResponse>> {
+  const result = await request<DashboardResponse>({
+    path: "/api/v1/dashboard",
+    method: "GET",
+    headers: initHeaders,
+    requiresAuth: true,
+  });
+  if ("ok" in result) {
+    return result;
+  }
+
+  const { response, body } = result;
+  const parsed = (body ?? {}) as ErrorPayload & Partial<DashboardResponse>;
+
+  if (!response.ok) {
+    return failureFromPayload(parsed as ErrorPayload, response.status);
+  }
+
+  if (
+    !parsed ||
+    typeof parsed !== "object" ||
+    !("sales_today" in parsed) ||
+    !("expenses_today" in parsed) ||
+    !("customer_debt" in parsed) ||
+    !("inventory" in parsed)
+  ) {
+    return {
+      ok: false,
+      kind: "error",
+      message: "The business service returned an unexpected dashboard response.",
+      status: response.status,
+    };
+  }
+
+  return {
+    ok: true,
+    data: parsed as DashboardResponse,
+    status: response.status,
+  };
+}

@@ -9,9 +9,10 @@
  *   3. The voice assistant is available on every page (landing, assistant, etc.)
  *
  * The widget receives the pre-configured `ai` client from `@/lib/voxide/client`
- * when `NEXT_PUBLIC_VOXIDE_PUBLIC_KEY` is set and
- * `NEXT_PUBLIC_VOXIDE_ENABLED=true`. Otherwise it renders nothing, and the
- * rest of the app keeps working without initializing a voice session.
+ * when `NEXT_PUBLIC_VOXIDE_PUBLIC_KEY` is set, unless
+ * `NEXT_PUBLIC_VOXIDE_ENABLED=false` explicitly disables it. Otherwise it
+ * renders nothing, and the rest of the app keeps working without initializing
+ * a voice session.
  *
  * No extra props are passed to VoxideWidget (no `theme`, `accentColor`, `position`,
  * etc.) so that all appearance settings are controlled from the Voxide dashboard.
@@ -23,13 +24,43 @@
 "use client";
 
 import { VoxideWidget } from "@voxide/react";
+import { usePathname } from "next/navigation";
+import { useEffect } from "react";
 import { ai } from "@/lib/voxide/client";
 
 export function AssistantWidget() {
+  const pathname = usePathname();
+
+  useEffect(() => {
+    if (!ai) return;
+
+    ai.configureUI(
+      pathname === "/assistant"
+        ? {
+            launcherMode: "voice-bar",
+            visualizer: "wave",
+            position: "bottom-center",
+          }
+        : {
+            launcherMode: "voice-orb",
+            visualizer: "orb",
+            position: "bottom-right",
+            launcherSize: "sm",
+          },
+    );
+  }, [pathname]);
+
   if (!ai) {
     return null;
   }
   // Pass nothing but the client. Every other prop outranks the dashboard,
   // so hardcoding one makes the matching Appearance control silently do nothing.
-  return <VoxideWidget client={ai} />;
+  return (
+    <div
+      className={pathname === "/assistant" ? "hidden" : "contents"}
+      aria-hidden={pathname === "/assistant" ? true : undefined}
+    >
+      <VoxideWidget client={ai} position="bottom-right" />
+    </div>
+  );
 }

@@ -180,6 +180,49 @@ h6 {
   -webkit-tap-highlight-color: transparent;
 }
 
+/* ==========================================================================
+   BenAiah Ethiopic Font Integration & Language-Scoped Typography
+   ========================================================================== */
+@font-face {
+  font-family: 'BenAiah';
+  src: url('/fonts/Benaiah.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Benaiah';
+  src: url('/fonts/Benaiah.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+html[lang="am"] {
+  --font-amharic: 'BenAiah', 'Benaiah', 'Noto Sans Ethiopic', 'Nyala', 'Abyssinica SIL', sans-serif;
+}
+
+html[lang="am"] body,
+html[lang="am"] button,
+html[lang="am"] input,
+html[lang="am"] textarea,
+html[lang="am"] select {
+  font-family: var(--font-amharic), var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  line-height: 1.6;
+}
+
+html[lang="am"] h1,
+html[lang="am"] h2,
+html[lang="am"] h3,
+html[lang="am"] h4,
+html[lang="am"] h5,
+html[lang="am"] h6,
+html[lang="am"] .font-display {
+  font-family: var(--font-amharic), var(--font-space), ui-sans-serif, system-ui, sans-serif;
+  letter-spacing: -0.01em;
+}
+
 button,
 a,
 input,
@@ -318,6 +361,12 @@ summary::-webkit-details-marker {
 
 .orb-breathe-animation {
   animation: orb-breathe 4s ease-in-out infinite;
+}
+
+@media (max-width: 639px) {
+  .vx-enter {
+    bottom: calc(4.5rem + env(safe-area-inset-bottom, 0px)) !important;
+  }
 }
 
 /* Meri Signal Field */

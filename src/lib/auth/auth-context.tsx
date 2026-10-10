@@ -17,14 +17,17 @@ interface AuthContextValue {
   user: User | null;
   session: Session | null;
   isLoading: boolean;
+  isConfigured: boolean;
   signOut: () => Promise<{ error: AuthError | null }>;
 }
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
 const isConfigured = Boolean(
-  process.env.NEXT_PUBLIC_SUPABASE_URL &&
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+  process.env.NEXT_PUBLIC_SUPABASE_URL?.trim() &&
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.trim() &&
+    !process.env.NEXT_PUBLIC_SUPABASE_URL.includes("placeholder.supabase.co") &&
+    !process.env.NEXT_PUBLIC_SUPABASE_URL.includes("your-project.supabase.co")
 );
 
 export function AuthProvider({ children }: { children: ReactNode }) {
@@ -83,9 +86,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       user,
       session,
       isLoading,
+      isConfigured,
       signOut,
     }),
-    [user, session, isLoading, signOut]
+    [user, session, isLoading, isConfigured, signOut]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

@@ -3,6 +3,7 @@ import { Inter, Space_Grotesk } from "next/font/google";
 import "./globals.css";
 import { AssistantWidget } from "@/components/voxide/assistant-widget";
 import { AuthProvider } from "@/lib/auth/auth-context";
+import { LanguageProvider } from "@/lib/i18n";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -49,11 +50,13 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       suppressHydrationWarning
     >
       <body className="min-h-[100dvh] flex flex-col bg-background text-foreground">
-        <AuthProvider>{children}</AuthProvider>
-        {/* Voxide voice widget. Stays mounted across navigations when a
-            public key is configured. Renders nothing when the key is absent.
-            See src/lib/voxide/client.ts for the registered capabilities. */}
-        <AssistantWidget />
+        <LanguageProvider>
+          <AuthProvider>{children}</AuthProvider>
+          {/* Voxide voice widget. Stays mounted across navigations when a
+              public key is configured. Renders nothing when the key is absent.
+              See src/lib/voxide/client.ts for the registered capabilities. */}
+          <AssistantWidget />
+        </LanguageProvider>
       </body>
     </html>
   );
