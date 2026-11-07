@@ -6,6 +6,7 @@ import {
   healthCheck,
   getAuthHeaders,
   getDashboardSummary,
+  interpretText,
   request,
 } from "./client";
 import type { SupabaseClient } from "@supabase/supabase-js";
@@ -328,6 +329,126 @@ test("request normalizes duplicate slashes and trailing slashes", async () => {
     assert.equal(requestedUrl, "https://api.example.com/api/v1/dashboard");
   } finally {
     globalThis.fetch = originalFetch;
+  }
+});
+
+test("interpretText posts only text and language and accepts an event without a date", async () => {
+  const previous = process.env.NEXT_PUBLIC_AI_ENGINE_URL;
+  process.env.NEXT_PUBLIC_AI_ENGINE_URL = "https://ai.example.com";
+  const originalFetch = globalThis.fetch;
+  let requestedUrl: string | null = null;
+  let requestBody: string | null = null;
+
+  globalThis.fetch = async (input, init) => {
+    requestedUrl = typeof input === "string" ? input : input.toString();
+    requestBody = typeof init?.body === "string" ? init.body : null;
+    return new Response(
+      JSON.stringify({
+        type: "create_event",
+        event_type: "sale",
+        data: {
+          item: "shoes",
+          quantity: 30,
+          amount: 90000,
+          currency: "ETB",
+        },
+      }),
+      { status: 200 },
+    );
+  };
+
+  try {
+    const result = await interpretText("I sold 30 shoes today.", "en");
+    assert.equal(requestedUrl, "https://ai.example.com/interpret");
+    assert.deepEqual(JSON.parse(requestBody ?? "{}"), {
+      text: "I sold 30 shoes today.",
+      language: "en",
+    });
+    assert.equal(result.ok, true);
+    if (result.ok && result.data.type === "create_event") {
+      assert.equal("date" in result.data.data, false);
+      assert.equal(result.data.data.amount, 90000);
+    }
+  } finally {
+    globalThis.fetch = originalFetch;
+    if (previous === undefined) {
+      delete process.env.NEXT_PUBLIC_AI_ENGINE_URL;
+    } else {
+      process.env.NEXT_PUBLIC_AI_ENGINE_URL = previous;
+    }
+  }
+});
+
+test("interpretText accepts the engine clarification shape", async () => {
+  const previous = process.env.NEXT_PUBLIC_AI_ENGINE_URL;
+  process.env.NEXT_PUBLIC_AI_ENGINE_URL = "https://ai.example.com";
+  const originalFetch = globalThis.fetch;
+
+  globalThis.fetch = async () =>
+    new Response(
+      JSON.stringify({
+        type: "clarification",
+        question: "How much was the sale?",
+        missing_fields: ["amount"],
+      }),
+      { status: 200 },
+    );
+
+  try {
+    const result = await interpretText("I sold 30 shoes today.", "en");
+    assert.equal(result.ok, true);
+    if (result.ok && result.data.type === "clarification") {
+      assert.deepEqual(result.data, {
+        type: "clarification",
+        question: "How much was the sale?",
+        missing_fields: ["amount"],
+      });
+    }
+  } finally {
+    globalThis.fetch = originalFetch;
+    if (previous === undefined) {
+      delete process.env.NEXT_PUBLIC_AI_ENGINE_URL;
+    } else {
+      process.env.NEXT_PUBLIC_AI_ENGINE_URL = previous;
+    }
+  }
+});
+
+test("interpretText does not reject a create_event whose date is null", async () => {
+  const previous = process.env.NEXT_PUBLIC_AI_ENGINE_URL;
+  process.env.NEXT_PUBLIC_AI_ENGINE_URL = "https://ai.example.com";
+  const originalFetch = globalThis.fetch;
+
+  globalThis.fetch = async () =>
+    new Response(
+      JSON.stringify({
+        type: "create_event",
+        event_type: "sale",
+        data: {
+          item: "shoes",
+          quantity: 30,
+          amount: 90000,
+          currency: "ETB",
+          date: null,
+        },
+      }),
+      { status: 200 },
+    );
+
+  try {
+    const result = await interpretText("I sold 30 shoes today.", "en");
+    assert.equal(result.ok, true);
+    if (result.ok && result.data.type === "create_event") {
+      assert.equal(result.data.data.date, null);
+      assert.equal(result.data.data.amount, 90000);
+    }
+  } finally {
+    globalThis.fetch = originalFetch;
+    if (previous === undefined) {
+      delete process.env.NEXT_PUBLIC_AI_ENGINE_URL;
+    } else {
+      process.env.NEXT_PUBLIC_AI_ENGINE_URL = previous;
+    }
   }
 });
 

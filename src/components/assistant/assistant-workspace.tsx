@@ -16,6 +16,14 @@ import type {
   EventType,
   InterpretationEventData,
 } from "@/lib/api/types";
+import {
+  buildTextEventRequest,
+  confirmRecordedEvent,
+  isTextEventReady,
+  prepareInterpretationRequest,
+  resolveAssistantTurn,
+  type PendingClarification,
+} from "@/lib/assistant/clarification";
 import { MVP_BUSINESS_ID } from "@/lib/config";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { LanguageSwitcher } from "@/components/language-switcher";
@@ -68,12 +76,6 @@ type PendingEvent = {
   source?: "text" | "manual";
 };
 
-type PendingClarification = {
-  originalText: string;
-  question: string;
-  missingFields: string[];
-};
-
 function nextId(prefix: string) {
   return `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 }
@@ -95,37 +97,6 @@ function formatAmount(value: number, currency: string | null): string {
   return `${value.toLocaleString("en-US")} ${currency ?? "ETB"}`;
 }
 
-function isLikelyNewRequest(text: string): boolean {
-  const normalized = text.trim().toLowerCase();
-  const newRequestPrefixes = [
-    "how ",
-    "what ",
-    "who ",
-    "where ",
-    "when ",
-    "i sold ",
-    "i bought ",
-    "i spent ",
-    "i lost ",
-    "record ",
-    "add ",
-  ];
-  return newRequestPrefixes.some((prefix) => normalized.startsWith(prefix));
-}
-
-function buildClarificationContinuation(
-  pending: PendingClarification,
-  answer: string,
-): string {
-  return [
-    `Original user statement: ${pending.originalText}`,
-    `Clarification question: ${pending.question}`,
-    `Missing fields: ${pending.missingFields.join(", ")}`,
-    `User clarification answer: ${answer}`,
-    "Resolve the original request using the clarification answer.",
-  ].join("\n");
-}
-
 function pendingEventFromInterpretation(
   eventType: EventType,
   data: InterpretationEventData,
@@ -135,21 +106,15 @@ function pendingEventFromInterpretation(
   const currency = textValue(data, "currency")?.toUpperCase() ?? "ETB";
 
   if (eventType === "sale" || eventType === "purchase") {
-    const item = textValue(data, "item");
-    const quantity = numberValue(data, "quantity");
-    const amount = numberValue(data, "amount");
+    if (!isTextEventReady(eventType, data)) return null;
 
-    if (!item || quantity === null || amount === null) return null;
-
+    const item = textValue(data, "item") ?? "";
+    const quantity = numberValue(data, "quantity") ?? 0;
+    const amount = numberValue(data, "amount") ?? 0;
     const formatted = formatAmount(amount, currency);
 
     return {
-      request: {
-        business_id: MVP_BUSINESS_ID,
-        language: locale,
-        event_type: eventType,
-        data: { ...data, currency },
-      },
+      request: buildTextEventRequest(eventType, data, locale, MVP_BUSINESS_ID),
       summary:
         eventType === "sale"
           ? t("cards.saleSummary", { quantity, item, amount: formatted })
@@ -164,20 +129,14 @@ function pendingEventFromInterpretation(
   }
 
   if (eventType === "expense") {
-    const description = textValue(data, "description");
-    const amount = numberValue(data, "amount");
+    if (!isTextEventReady(eventType, data)) return null;
 
-    if (!description || amount === null) return null;
-
+    const description = textValue(data, "description") ?? "";
+    const amount = numberValue(data, "amount") ?? 0;
     const formatted = formatAmount(amount, currency);
 
     return {
-      request: {
-        business_id: MVP_BUSINESS_ID,
-        language: locale,
-        event_type: eventType,
-        data: { ...data, currency },
-      },
+      request: buildTextEventRequest(eventType, data, locale, MVP_BUSINESS_ID),
       summary: t("cards.expenseSummary", { description, amount: formatted }),
       headline: t("cards.expenseHeadline", { description, amount: formatted }),
       card: "expense",
@@ -186,20 +145,14 @@ function pendingEventFromInterpretation(
   }
 
   if (eventType === "inventory_adjustment") {
-    const item = textValue(data, "item");
-    const quantity = numberValue(data, "quantity");
+    if (!isTextEventReady(eventType, data)) return null;
 
-    if (!item || quantity === null || quantity === 0) return null;
-
+    const item = textValue(data, "item") ?? "";
+    const quantity = numberValue(data, "quantity") ?? 0;
     const reason = textValue(data, "reason") ?? "adjustment";
 
     return {
-      request: {
-        business_id: MVP_BUSINESS_ID,
-        language: locale,
-        event_type: eventType,
-        data,
-      },
+      request: buildTextEventRequest(eventType, data, locale, MVP_BUSINESS_ID),
       summary: t("cards.inventorySummary", { quantity, item, reason }),
       headline: t("cards.inventoryHeadline", { quantity, item }),
       card: "note",
@@ -207,12 +160,11 @@ function pendingEventFromInterpretation(
     };
   }
 
-  const customer = textValue(data, "customer");
-  const amount = numberValue(data, "amount");
-  const direction = textValue(data, "direction");
+  if (!isTextEventReady(eventType, data)) return null;
 
-  if (!customer || amount === null || !direction) return null;
-
+  const customer = textValue(data, "customer") ?? "";
+  const amount = numberValue(data, "amount") ?? 0;
+  const direction = textValue(data, "direction") ?? "";
   const directionLabel =
     direction === "owed_to_business"
       ? t("cards.debtDirectionOwedToBusiness")
@@ -220,12 +172,7 @@ function pendingEventFromInterpretation(
   const formatted = formatAmount(amount, currency);
 
   return {
-    request: {
-      business_id: MVP_BUSINESS_ID,
-      language: locale,
-      event_type: eventType,
-      data: { ...data, currency },
-    },
+    request: buildTextEventRequest(eventType, data, locale, MVP_BUSINESS_ID),
     summary: t("cards.debtSummary", { customer, amount: formatted, direction: directionLabel }),
     headline: t("cards.debtHeadline", { customer, amount: formatted }),
     card: "note",
@@ -405,26 +352,16 @@ export function AssistantWorkspace() {
     }
 
     try {
-      const continuesClarification =
-        pendingClarification && !isLikelyNewRequest(trimmed)
-          ? pendingClarification
-          : null;
-
-      const interpretationText = pendingClarification
-        ? isLikelyNewRequest(trimmed)
-          ? trimmed
-          : continuesClarification
-            ? buildClarificationContinuation(
-                continuesClarification,
-                trimmed,
-              )
-            : trimmed
-        : trimmed;
-
-      const result = await interpretText(
-        interpretationText,
-        locale,
+      const prepared = prepareInterpretationRequest(
+        pendingClarification,
+        trimmed,
       );
+
+      if (prepared.abandonedPending) {
+        setPendingClarification(null);
+      }
+
+      const result = await interpretText(prepared.text, locale);
 
       if (!result.ok) {
         if (result.kind === "clarification") {
@@ -449,19 +386,19 @@ export function AssistantWorkspace() {
         return;
       }
 
-      setPendingClarification(null);
+      const resolution = resolveAssistantTurn({
+        userText: trimmed,
+        continues: prepared.continues,
+        interpretation: result.data,
+      });
 
-      if (result.data.type === "clarification") {
-        setPendingClarification({
-          originalText: continuesClarification?.originalText ?? trimmed,
-          question: result.data.question,
-          missingFields: result.data.missing_fields,
-        });
+      if (resolution.action === "clarification") {
+        setPendingClarification(resolution.pending);
 
         pushFeed({
           id: nextId("clarification"),
           kind: "assistant-clarification",
-          question: result.data.question,
+          question: resolution.question,
           options: [],
           timestamp: t("assistant.needsInput"),
         });
@@ -469,10 +406,12 @@ export function AssistantWorkspace() {
         return;
       }
 
-      if (result.data.type === "create_event") {
+      setPendingClarification(null);
+
+      if (resolution.action === "await_confirmation") {
         const event = pendingEventFromInterpretation(
-          result.data.event_type,
-          result.data.data,
+          resolution.eventType,
+          resolution.data,
           t,
           locale,
         );
@@ -498,7 +437,7 @@ export function AssistantWorkspace() {
       const queryResult = await queryBusiness({
         business_id: MVP_BUSINESS_ID,
         language: locale,
-        query: result.data.query,
+        query: resolution.query,
       });
 
       if (!queryResult.ok) {
@@ -765,7 +704,10 @@ export function AssistantWorkspace() {
     setFormError(null);
 
     try {
-      const result = await createEvent(pendingEvent.request);
+      const result = await confirmRecordedEvent(
+        pendingEvent.request,
+        createEvent,
+      );
 
       if (!result.ok) {
         setFormError(result.message);
