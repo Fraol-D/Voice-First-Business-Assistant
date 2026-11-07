@@ -25,6 +25,7 @@ import {
   type PendingClarification,
 } from "@/lib/assistant/clarification";
 import { MVP_BUSINESS_ID } from "@/lib/config";
+import { formatAmount as formatCurrencyAmount } from "@/lib/format";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { LanguageSwitcher } from "@/components/language-switcher";
 import { useTranslation } from "@/lib/i18n";
@@ -93,8 +94,8 @@ function numberValue(
   return typeof value === "number" && Number.isFinite(value) ? value : null;
 }
 
-function formatAmount(value: number, currency: string | null): string {
-  return `${value.toLocaleString("en-US")} ${currency ?? "ETB"}`;
+function formatAmount(value: number | string, currency: string | null): string {
+  return formatCurrencyAmount(value, currency);
 }
 
 function pendingEventFromInterpretation(
@@ -540,8 +541,8 @@ export function AssistantWorkspace() {
             event_type: "sale",
             data,
           },
-          summary: t("cards.saleSummary", { quantity, item, amount }),
-          headline: t("cards.saleHeadline", { quantity, item, amount }),
+          summary: t("cards.saleSummary", { quantity, item, amount: formatAmount(amount, "ETB") }),
+          headline: t("cards.saleHeadline", { quantity, item, amount: formatAmount(amount, "ETB") }),
           card: "sale",
         };
       }
@@ -557,8 +558,8 @@ export function AssistantWorkspace() {
           event_type: "purchase",
           data,
         },
-        summary: t("cards.purchaseSummary", { quantity, item, amount }),
-        headline: t("cards.purchaseHeadline", { quantity, item, amount }),
+        summary: t("cards.purchaseSummary", { quantity, item, amount: formatAmount(amount, "ETB") }),
+        headline: t("cards.purchaseHeadline", { quantity, item, amount: formatAmount(amount, "ETB") }),
         card: "note",
       };
     }
@@ -591,8 +592,8 @@ export function AssistantWorkspace() {
           event_type: "expense",
           data,
         },
-        summary: t("cards.expenseSummary", { description, amount }),
-        headline: t("cards.expenseHeadline", { description, amount }),
+        summary: t("cards.expenseSummary", { description, amount: formatAmount(amount, "ETB") }),
+        headline: t("cards.expenseHeadline", { description, amount: formatAmount(amount, "ETB") }),
         card: "expense",
       };
     }
@@ -674,8 +675,8 @@ export function AssistantWorkspace() {
         event_type: "customer_debt",
         data,
       },
-      summary: t("cards.debtSummary", { customer, amount, direction: directionLabel }),
-      headline: t("cards.debtHeadline", { customer, amount }),
+      summary: t("cards.debtSummary", { customer, amount: formatAmount(amount, "ETB"), direction: directionLabel }),
+      headline: t("cards.debtHeadline", { customer, amount: formatAmount(amount, "ETB") }),
       card: "note",
     };
   }

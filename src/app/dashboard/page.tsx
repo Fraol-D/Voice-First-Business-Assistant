@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth/auth-context";
 import { getDashboardSummary } from "@/lib/api/client";
 import type { DashboardResponse } from "@/lib/api/types";
+import { formatAmount } from "@/lib/format";
 import { MeriLogo } from "@/components/landing/meri-logo";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { AuthenticatedBottomNav } from "@/components/navigation/authenticated-bottom-nav";
@@ -65,14 +66,8 @@ const DEMO_PREVIEW_DATA: DashboardResponse = {
   ],
 };
 
-function formatMoney(amount: number, currency: string = "ETB"): string {
-  const formatted = Number.isFinite(amount)
-    ? amount.toLocaleString("en-US", {
-        minimumFractionDigits: amount % 1 === 0 ? 0 : 2,
-        maximumFractionDigits: 2,
-      })
-    : "0";
-  return `${formatted} ${currency}`;
+function formatMoney(amount: number | string, currency: string = "ETB"): string {
+  return formatAmount(amount, currency);
 }
 
 function formatTimestamp(isoString: string): string {

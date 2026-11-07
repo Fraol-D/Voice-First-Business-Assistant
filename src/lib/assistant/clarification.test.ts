@@ -8,6 +8,8 @@ import type {
   CreateEventRequest,
   InterpretationResult,
 } from "@/lib/api/types";
+import { formatAmount } from "@/lib/format";
+import { formatTranslation } from "@/lib/i18n";
 import {
   buildTextEventRequest,
   confirmRecordedEvent,
@@ -473,4 +475,85 @@ test("the text assistant wires clarification state and confirms before posting",
   assert.match(submitText, /await_confirmation/);
   assert.match(source, /isTextEventReady/);
   assert.match(source, /confirmRecordedEvent\(\s*pendingEvent\.request/);
+});
+
+test("formatAmount formats numeric amounts and other supported currencies without duplication", () => {
+  assert.equal(formatAmount(90000, "ETB"), "90,000 ETB");
+  assert.equal(formatAmount(40000, "ETB"), "40,000 ETB");
+  assert.equal(formatAmount(90000), "90,000 ETB");
+  assert.equal(formatAmount(90000, null), "90,000 ETB");
+  assert.equal(formatAmount(500, "USD"), "500 USD");
+  assert.equal(formatAmount(500, "usd"), "500 USD");
+  assert.equal(formatAmount(1250.5, "USD"), "1,250.50 USD");
+  assert.equal(formatAmount(1250.5, "ETB"), "1,250.50 ETB");
+  assert.equal(formatAmount(0, "ETB"), "0 ETB");
+});
+
+test("formatAmount safely normalizes preformatted and duplicated currency strings", () => {
+  assert.equal(formatAmount("90,000 ETB", "ETB"), "90,000 ETB");
+  assert.equal(formatAmount("40,000 ETB"), "40,000 ETB");
+  assert.equal(formatAmount("90000 ETB", "ETB"), "90,000 ETB");
+  assert.equal(formatAmount("90,000 ETB ETB", "ETB"), "90,000 ETB");
+  assert.equal(formatAmount("40,000 ETB ETB"), "40,000 ETB");
+  assert.equal(formatAmount("ETB 90,000", "ETB"), "90,000 ETB");
+  assert.equal(formatAmount("ETB 90,000 ETB", "ETB"), "90,000 ETB");
+  assert.equal(formatAmount("1,000 birr", "ETB"), "1,000 ETB");
+  assert.equal(formatAmount("1,000 birr"), "1,000 ETB");
+  assert.notEqual(formatAmount("1,000 birr", "ETB"), "1,000 b IRR");
+  assert.equal(formatAmount("1,000 ብር", "ETB"), "1,000 ETB");
+  assert.equal(formatAmount("1,000 ብር"), "1,000 ETB");
+  assert.equal(formatAmount("500 USD"), "500 USD");
+  assert.equal(formatAmount("500 USD", "USD"), "500 USD");
+  assert.equal(formatAmount("500 USD USD", "USD"), "500 USD");
+});
+
+test("formatAmount lets explicit currency override conflicting embedded ISO codes and handles invalid inputs safely", () => {
+  assert.equal(formatAmount("500 USD", "ETB"), "500 ETB");
+  assert.equal(formatAmount("90,000 ETB", "USD"), "90,000 USD");
+
+  assert.equal(formatAmount(null, "ETB"), "0 ETB");
+  assert.equal(formatAmount(undefined, "ETB"), "0 ETB");
+  assert.equal(formatAmount(null), "0 ETB");
+  assert.equal(formatAmount(undefined), "0 ETB");
+  assert.equal(formatAmount("", "ETB"), "0 ETB");
+  assert.equal(formatAmount("   ", "USD"), "0 USD");
+  assert.equal(formatAmount(Number.NaN, "ETB"), "0 ETB");
+  assert.equal(formatAmount(Number.POSITIVE_INFINITY, "ETB"), "0 ETB");
+
+  assert.notEqual(formatAmount("pending", "ETB"), "g PEN");
+  assert.equal(formatAmount("pending", "ETB"), "0 ETB");
+  assert.notEqual(formatAmount("abc"), "0 ABC");
+  assert.equal(formatAmount("abc"), "0 ETB");
+  assert.equal(formatAmount("1,000 shoes", "ETB"), "0 ETB");
+});
+
+test("card headlines and summaries display single currency labels for ETB and other currencies", () => {
+  const sale90k = formatAmount(90000, "ETB");
+  const sale40k = formatAmount(40000, "ETB");
+  const saleUsd = formatAmount(500, "USD");
+
+  assert.equal(
+    formatTranslation("cards.saleHeadline", { quantity: 30, item: "shoes", amount: sale90k }, "en"),
+    "30 shoes · 90,000 ETB",
+  );
+  assert.equal(
+    formatTranslation("cards.saleHeadline", { quantity: 20, item: "shoes", amount: sale40k }, "en"),
+    "20 shoes · 40,000 ETB",
+  );
+  assert.equal(
+    formatTranslation("cards.saleSummary", { quantity: 30, item: "shoes", amount: sale90k }, "en"),
+    "Sale: 30 shoes · 90,000 ETB",
+  );
+  assert.equal(
+    formatTranslation("cards.saleHeadline", { quantity: 3, item: "shirts", amount: saleUsd }, "en"),
+    "3 shirts · 500 USD",
+  );
+  assert.equal(
+    formatTranslation("cards.saleSummary", { quantity: 3, item: "shirts", amount: saleUsd }, "en"),
+    "Sale: 3 shirts · 500 USD",
+  );
+  assert.equal(
+    formatTranslation("cards.saleHeadline", { quantity: 30, item: "shoes", amount: sale90k }, "am"),
+    "30 shoes · 90,000 ETB",
+  );
 });
