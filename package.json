@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "test": "tsx --test src/lib/api/client.test.ts"
+    "test": "tsx --test src/lib/api/client.test.ts src/lib/assistant/clarification.test.ts"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.7",
